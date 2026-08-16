@@ -14,7 +14,7 @@ tags:
 ---
 # C4 Model — Level 2: Container Diagram — {Project Name}
 
-## Purpose
+## 1. Purpose
 Zooms into the system to show the high-level technical building blocks
 (applications, data stores, microservices) and how they communicate.
 
@@ -22,7 +22,7 @@ Zooms into the system to show the high-level technical building blocks
 [Diagram or link to Structurizr/Lucidchart/Mermaid source]
 ```
 
-## Containers
+## 2. Containers
 | Container | Technology | Responsibility |
 |---|---|---|
 | Web App | | |
@@ -30,7 +30,7 @@ Zooms into the system to show the high-level technical building blocks
 | Database | | |
 | Message Broker | | |
 
-## Communication
+## 3. Communication
 | From | To | Protocol | Description |
 |---|---|---|---|
 | | | | |

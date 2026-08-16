@@ -16,9 +16,9 @@ tags:
 |---|---|---|---|---|---|---|---|---|
 | R-1 | | Technical/Business/Security/Ops | L/M/H | L/M/H | | | | Open/Mitigated/Closed |
 
-## Risk Scoring Legend
+## 1. Risk Scoring Legend
 - **Likelihood / Impact:** Low / Medium / High
 - **Score:** Likelihood × Impact (or your org's standard formula)
 
-## Review Cadence
+## 2. Review Cadence
 How often this register is reviewed and by whom.

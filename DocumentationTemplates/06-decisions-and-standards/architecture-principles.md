@@ -12,10 +12,10 @@ tags:
 ---
 # Architecture Principles — {Project Name}
 
-## Principle Template
+## 1. Principle Template
 Copy per principle.
 
-### Principle: <Name>
+### 1.1 Principle: <Name>
 - **Statement:** e.g. "Prefer asynchronous messaging over synchronous
   calls between services."
 - **Rationale:**
@@ -25,7 +25,7 @@ Copy per principle.
 
 ---
 
-## Principle Register
+## 2. Principle Register
 | # | Principle | Category |
 |---|---|---|
 | 1 | | Integration / Data / Security / Ops |

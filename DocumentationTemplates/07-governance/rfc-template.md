@@ -2,6 +2,9 @@
 title: "RFC: {Title}"
 status: draft
 owner: TBD
+version: 0.1
+last_updated: TBD
+reviewers: TBD
 tags:
   - rfc
   - architecture
@@ -15,17 +18,17 @@ tags:
 | Status | Draft / Under Review / Accepted / Rejected |
 | Date   | YYYY-MM-DD                                 |
 
-## Summary
+## 1. Summary
 One paragraph.
 
-## Motivation
+## 2. Motivation
 Why are we doing this?
 
-## Detailed Design
+## 3. Detailed Design
 
-## Alternatives Considered
+## 4. Alternatives Considered
 
-## Impact
+## 5. Impact
 On existing systems, teams, timelines.
 
-## Open Questions
+## 6. Open Questions

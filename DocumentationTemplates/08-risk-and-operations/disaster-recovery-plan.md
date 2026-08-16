@@ -34,15 +34,15 @@ tags:
 
 ## 4. Recovery Procedures
 
-### Scenario: Region Outage
+### 4.1 Scenario: Region Outage
 1. TBD (failover trigger — automatic or manual?)
 2. TBD
 3. TBD
 
-### Scenario: Data Corruption
+### 4.2 Scenario: Data Corruption
 1. TBD
 
-### Scenario: Ransomware / Security Incident
+### 4.3 Scenario: Ransomware / Security Incident
 1. TBD
 
 ## 5. Roles & Responsibilities During an Incident

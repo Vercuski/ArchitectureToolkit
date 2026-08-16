@@ -2,6 +2,9 @@
 title: API Specification Guide
 status: draft
 owner: TBD
+version: 0.1
+last_updated: TBD
+reviewers: TBD
 tags:
   - api_specificiation_guide
   - architecture
@@ -15,29 +18,29 @@ tags:
 > used for mock/codegen — don't hand-write API docs in prose if you can
 > avoid it.
 
-## Inventory
+## 1. Inventory
 
 | API | Type | Spec Location | Owning Team | Status |
 |---|---|---|---|---|
 | TBD | REST / gRPC / async | `/specs/TBD.yaml` | TBD | Draft/Stable/Deprecated |
 
-## Versioning Strategy
+## 2. Versioning Strategy
 TBD — e.g., URI versioning (`/v1/...`), header-based, semantic versioning
 of the contract itself.
 
-## Deprecation Policy
+## 3. Deprecation Policy
 TBD — how much notice, how long old versions are supported.
 
-## Authentication & Authorization
+## 4. Authentication & Authorization
 TBD — link to `../05-security/security-architecture.md`
 
-## Error Handling Convention
+## 5. Error Handling Convention
 > Guidance: Standardize error shape across all APIs (e.g., RFC 7807
 > Problem Details) so consumers write one error handler, not one per API.
 
 TBD
 
-## Example OpenAPI Skeleton
+## 6. Example OpenAPI Skeleton
 ```yaml
 openapi: 3.0.3
 info:

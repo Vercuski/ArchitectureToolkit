@@ -2,6 +2,9 @@
 title: "Runbook: {Service/Scenario Name}"
 status: draft
 owner: TBD
+version: 0.1
+last_updated: TBD
+reviewers: TBD
 tags:
   - runbook_template
   - architecture
@@ -14,42 +17,42 @@ tags:
 > an index of runbooks (e.g. a table in this folder's README) so people
 > can find the right one during an incident.
 
-## When to Use This Runbook
+## 1. When to Use This Runbook
 TBD — what alert or symptom triggers this?
 
-## Symptoms
+## 2. Symptoms
 -
 
-## Likely Causes
+## 3. Likely Causes
 -
 
-## Prerequisites
+## 4. Prerequisites
 - Access needed: TBD
 - Tools needed: TBD
 
-## Diagnosis Steps
+## 5. Diagnosis Steps
 1. TBD
 2. TBD
 
-## Resolution Steps
+## 6. Resolution Steps
 1. TBD
 2. TBD
 
-## Verification
+## 7. Verification
 > Guidance: How do you know the fix worked? Specific commands/dashboards
 > to check.
 
 TBD
 
-## Rollback
+## 8. Rollback
 TBD
 
-## Escalation
+## 9. Escalation
 | Condition | Escalate To | Contact Method |
 |---|---|---|
 | TBD | TBD | TBD |
 
-## Related
+## 10. Related
 - Dashboard: TBD
 - Alert definition: TBD
 - Related incidents: TBD

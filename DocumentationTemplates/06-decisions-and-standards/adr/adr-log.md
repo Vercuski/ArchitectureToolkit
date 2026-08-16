@@ -1,5 +1,10 @@
 ---
 title: ADR Log
+status: draft
+owner: TBD
+version: 0.1
+last_updated: TBD
+reviewers: TBD
 tags:
   - adr
   - log

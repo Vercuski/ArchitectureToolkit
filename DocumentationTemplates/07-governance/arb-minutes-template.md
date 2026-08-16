@@ -2,6 +2,9 @@
 title: Architecture Review Board — Minutes
 status: draft
 owner: TBD
+version: 0.1
+last_updated: TBD
+reviewers: TBD
 tags:
   - arb
   - architecture
@@ -15,18 +18,18 @@ tags:
 | Attendees | |
 | Facilitator | |
 
-## Agenda
+## 1. Agenda
 1.
 2.
 
-## Discussion Notes
+## 2. Discussion Notes
 
-## Decisions Made
+## 3. Decisions Made
 | Item | Decision | Owner | Follow-up ADR/RFC |
 |---|---|---|---|
 | | | | |
 
-## Action Items
+## 4. Action Items
 | Action | Owner | Due Date |
 |---|---|---|
 | | | |

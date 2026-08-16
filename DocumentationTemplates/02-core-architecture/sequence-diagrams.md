@@ -2,6 +2,9 @@
 title: Key Sequence / Interaction Diagrams
 status: draft
 owner: TBD
+version: 0.1
+last_updated: TBD
+reviewers: TBD
 tags:
   - sequence_diagram
   - architecture
@@ -13,7 +16,7 @@ tags:
 > services, or are business-critical (checkout, auth, payment). Don't
 > diagram every CRUD call.
 
-## Flow: {Name, e.g., "User Checkout"}
+## 1. Flow: {Name, e.g., "User Checkout"}
 
 ```mermaid
 sequenceDiagram

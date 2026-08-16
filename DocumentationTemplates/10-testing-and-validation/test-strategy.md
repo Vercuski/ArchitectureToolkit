@@ -34,22 +34,22 @@ How each non-functional requirement will be validated.
 | NFR | Test Approach | Pass Criteria |
 |---|---|---|
 
-### Load / Performance Testing
+### 2.1 Load / Performance Testing
 - Tooling: TBD (k6, JMeter, Gatling)
 - Scenarios tested: TBD (link back to quality attribute scenarios)
 - Pass/fail criteria: TBD
 
-### Chaos / Resilience Testing
+### 2.2 Chaos / Resilience Testing
 - Tooling: TBD (Chaos Monkey, Gremlin, manual game days)
 - Failure modes injected: TBD
 - Expected behavior: TBD
 
-### Security Testing
+### 2.3 Security Testing
 - Penetration testing cadence: TBD
 - SAST/DAST tooling: TBD
 - Dependency scanning: TBD
 
-### Accessibility Testing (if applicable)
+### 2.4 Accessibility Testing (if applicable)
 TBD
 
 ## 3. Test Environments

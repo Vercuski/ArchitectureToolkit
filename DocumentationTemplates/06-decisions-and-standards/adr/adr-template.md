@@ -1,8 +1,10 @@
 ---
 title: "ADR-XXXX: {Short Title}"
-status: proposed
-date: TBD
-deciders: TBD
+status: draft
+owner: TBD
+version: 0.1
+last_updated: TBD
+reviewers: TBD
 tags:
   - adr
   - template
@@ -15,28 +17,28 @@ tags:
 > template and number sequentially: 0001, 0002, etc. Never delete an ADR
 > once accepted — supersede it with a new one that links back.
 
-## Status
+## 1. Status
 Proposed | Accepted | Deprecated | Superseded by [ADR-XXXX](XXXX-title.md)
 
-## Context
+## 2. Context
 > What is the issue we're seeing that motivates this decision? State the
 > forces at play (technical, political, social, project-local) as
 > neutrally as possible.
 
 TBD
 
-## Decision
+## 3. Decision
 > State the decision in full sentences, active voice: "We will use X to
 > do Y because Z."
 
 TBD
 
-## Alternatives Considered
+## 4. Alternatives Considered
 | Option | Pros | Cons | Why not chosen |
 |---|---|---|---|
 | TBD | TBD | TBD | TBD |
 
-## Consequences
+## 5. Consequences
 > Guidance: Be honest here — include the negative and neutral
 > consequences, not just the positive ones.
 
@@ -49,6 +51,6 @@ TBD
 **Neutral / follow-up work required:**
 - TBD
 
-## Related
+## 6. Related
 Links to related ADRs, architecture document sections, or external
 references.

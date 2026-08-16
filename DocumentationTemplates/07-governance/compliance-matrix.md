@@ -12,19 +12,19 @@ tags:
 ---
 # Compliance Matrix — {Project Name}
 
-## Applicable Standards/Regulations
+## 1. Applicable Standards/Regulations
 | Standard | Applicability | Owner |
 |---|---|---|
 | SOC 2 | | |
 | GDPR | | |
 | HIPAA | | |
 
-## Control Mapping
+## 2. Control Mapping
 | Requirement | Control Description | Implementation | Evidence Location | Status |
 |---|---|---|---|---|
 | | | | | Compliant / Gap / N-A |
 
-## Open Gaps
+## 3. Open Gaps
 | Gap | Risk | Remediation Plan | Target Date |
 |---|---|---|---|
 | | | | |

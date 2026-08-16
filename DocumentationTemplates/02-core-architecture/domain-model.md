@@ -2,6 +2,9 @@
 title: Domain Model / Conceptual Data Model
 status: draft
 owner: TBD
+version: 0.1
+last_updated: TBD
+reviewers: TBD
 tags:
   - domain_model
   - architecture
@@ -16,17 +19,17 @@ tags:
 > physical/logical storage side (data dictionary, storage strategy, data
 > governance).
 
-## Bounded Contexts
+## 1. Bounded Contexts
 | Context | Responsibility | Owning Team |
 |---|---|---|
 | TBD | TBD | TBD |
 
-## Ubiquitous Language / Glossary
+## 2. Ubiquitous Language / Glossary
 | Term | Definition | Context |
 |---|---|---|
 | TBD | TBD | TBD |
 
-## Core Entities & Relationships
+## 3. Core Entities & Relationships
 
 ```
 [ER diagram or Mermaid erDiagram source]
@@ -38,12 +41,12 @@ tags:
 - **Invariants:** TBD (business rules that must always hold)
 - **Lifecycle:** TBD (states it moves through)
 
-## Aggregates (if DDD)
+## 4. Aggregates (if DDD)
 | Aggregate Root | Contains | Consistency Boundary |
 |---|---|---|
 | TBD | TBD | TBD |
 
-## Context Map
+## 5. Context Map
 > Guidance: How do bounded contexts relate — shared kernel,
 > customer/supplier, anti-corruption layer, conformist, etc.
 

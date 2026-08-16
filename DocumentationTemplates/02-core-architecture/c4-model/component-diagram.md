@@ -14,22 +14,22 @@ tags:
 
 # C4 Model — Level 3: Component Diagram — {Project Name}
 
-## Purpose
+## 1. Purpose
 Zooms into a single container to show its internal components and their
 interactions. Repeat this template per significant container.
 
-## Container: \<Name\>
+## 2. Container: \<Name\>
 
 ```
 [Diagram or link to Structurizr/Lucidchart/Mermaid source]
 ```
 
-## Components
+## 3. Components
 | Component | Responsibility | Depends On |
 |---|---|---|
 | | | |
 
-## Key Interactions
+## 4. Key Interactions
 See `../sequence-diagrams.md` for the sequence diagram(s) of the primary
 flow(s) through this container.
 

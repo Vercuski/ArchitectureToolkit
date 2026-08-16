@@ -2,6 +2,9 @@
 title: 4+1 Architectural View Model
 status: draft
 owner: TBD
+version: 0.1
+last_updated: TBD
+reviewers: TBD
 tags:
   - 4plus1
   - architecture
@@ -14,30 +17,30 @@ tags:
 > already familiar with Kruchten's model. The "+1" is scenarios that tie
 > the other four together.
 
-## Logical View
+## 1. Logical View
 > Object/class model, key abstractions. Audience: developers, designers.
 
 TBD
 
-## Process View
+## 2. Process View
 > Concurrency, processes, threads — runtime behavior. Audience:
 > integrators, performance engineers.
 
 TBD
 
-## Development View
+## 3. Development View
 > Module/package/layer organization, build structure. Audience:
 > developers, project management.
 
 TBD
 
-## Physical View
+## 4. Physical View
 > Mapping of software to hardware/infrastructure. Audience: system
 > engineers, ops.
 
 TBD
 
-## Scenarios (+1)
+## 5. Scenarios (+1)
 > A handful of key use cases that exercise all four views — the glue and
 > validation.
 

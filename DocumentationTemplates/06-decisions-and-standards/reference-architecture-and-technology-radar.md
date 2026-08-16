@@ -41,46 +41,46 @@ Strangler Fig) and when to apply them.
 
 ## 4. Standards
 
-### Coding & API Standards
+### 4.1 Coding & API Standards
 Link to style guides, linting configs.
 
-### Logging Standard
+### 4.2 Logging Standard
 Required fields, format (structured JSON, correlation IDs).
 
-### Error Handling Standard
+### 4.3 Error Handling Standard
 
 ## 5. Technology Radar
 > Guidance: Inspired by ThoughtWorks' Tech Radar format. Four rings:
 > Adopt, Trial, Assess, Hold. Four quadrants: Languages & Frameworks,
 > Tools, Platforms, Techniques.
 
-### Adopt
+### 5.1 Adopt
 > Proven, low-risk, default choice.
 
 | Item | Quadrant | Notes |
 |---|---|---|
 
-### Trial
+### 5.2 Trial
 > Worth pursuing, understand the risks, use on a project that can handle
 > it.
 
 | Item | Quadrant | Notes |
 |---|---|---|
 
-### Assess
+### 5.3 Assess
 > Worth exploring, not yet proven — spike/POC territory.
 
 | Item | Quadrant | Notes |
 |---|---|---|
 
-### Hold
+### 5.4 Hold
 > Proceed with caution — being phased out, or not recommended for new
 > work.
 
 | Item | Quadrant | Notes |
 |---|---|---|
 
-### Change Log
+### 5.5 Change Log
 | Date | Item | Moved From → To | Reason |
 |---|---|---|---|
 
