@@ -1,0 +1,53 @@
+name: Link Check
+
+# Runs on every push, plus a manual trigger so you can re-run it on demand
+# (e.g. after fixing a link) without needing a new commit.
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  markdown-link-check:
+    name: markdown-link-check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # NOTE: gaurav-nelson/github-action-markdown-link-check is deprecated by
+      # its own maintainer in favor of tcort/github-action-markdown-link-check
+      # (same underlying tcort/markdown-link-check engine, same config format).
+      - name: Run markdown-link-check
+        uses: tcort/github-action-markdown-link-check@v1
+        with:
+          use-quiet-mode: 'yes'
+          use-verbose-mode: 'yes'
+          config-file: '.github/mlc-config.json'
+
+  lychee:
+    name: lychee
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Cache lychee's results so repeat runs against unchanged external URLs
+      # don't re-hit the network every push (also helps avoid rate limits).
+      - name: Restore lychee cache
+        uses: actions/cache@v4
+        with:
+          path: .lycheecache
+          key: cache-lychee-${{ github.sha }}
+          restore-keys: cache-lychee-
+
+      - name: Run lychee
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --cache --max-cache-age 1d --no-progress .
+          format: markdown
+          fail: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

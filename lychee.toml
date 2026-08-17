@@ -1,0 +1,34 @@
+# Lychee configuration for ArchitectureToolkit.
+# Auto-discovered by lychee when it's run from the repo root (no --config
+# flag needed). Reference: https://lychee.cli.rs/guides/config/
+
+############################# Display #############################
+
+# "info" surfaces retries/redirects without drowning the log; use "error"
+# for quieter CI output once the link set has stabilized.
+verbose = "info"
+no_progress = true
+
+############################# Runtime ###############################
+
+timeout = 20
+max_retries = 3
+retry_wait_time = 2
+max_redirects = 10
+
+############################# Requests ##############################
+
+# Treat GitHub's rate-limit response as non-fatal so CI doesn't flake when
+# lots of github.com links get checked back-to-back.
+accept = ["200", "429"]
+
+############################# Exclusions ############################
+
+# Only markdown files are in scope for this repo.
+extensions = ["md"]
+
+# adr-template.md's "Superseded by [ADR-XXXX](XXXX-title.md)" is a
+# placeholder for whoever fills in a given ADR — not a real file.
+exclude = [
+  "^XXXX-title\\.md$",
+]
