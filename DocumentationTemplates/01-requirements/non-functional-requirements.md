@@ -48,7 +48,7 @@ downtime
 - AuthN/AuthZ requirements
 - Data classification & encryption requirements
 - Compliance (SOC2, GDPR, HIPAA, etc.) — cross-reference
-  `05-security/security-architecture.md`
+  `../05-security/security-architecture.md`
 
 ## 5. Maintainability
 - Code quality gates

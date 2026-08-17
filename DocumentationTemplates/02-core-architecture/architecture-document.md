@@ -26,8 +26,8 @@ tags:
 ## 2. Executive Summary
 
 ## 3. Architectural Goals & Constraints
-Link to `00-vision-and-strategy/architecture-vision.md` and
-`01-requirements/non-functional-requirements.md`.
+Link to `../00-vision-and-strategy/architecture-vision.md` and
+`../01-requirements/non-functional-requirements.md`.
 
 | Goal / Constraint | Description | Driver |
 |---|---|---|

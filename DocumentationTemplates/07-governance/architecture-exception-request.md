@@ -34,9 +34,9 @@ tags:
 ## 1. Standard Being Excepted
 > Guidance: Quote or link the specific rule, not just the document it
 > lives in — e.g. a specific row in
-> `06-decisions-and-standards/reference-architecture-and-technology-radar.md`
+> `../06-decisions-and-standards/reference-architecture-and-technology-radar.md`
 > §3 (Deprecated / Disallowed Technologies) or a specific principle in
-> `architecture-principles.md`.
+> `../06-decisions-and-standards/architecture-principles.md`.
 
 ## 2. Reason for Exception
 Why the standard can't be followed here — technical constraint, vendor
