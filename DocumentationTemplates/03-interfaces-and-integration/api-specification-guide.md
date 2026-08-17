@@ -6,7 +6,7 @@ version: 0.1
 last_updated: TBD
 reviewers: TBD
 tags:
-  - api_specificiation_guide
+  - api_specification_guide
   - architecture
   - documentation
 ---

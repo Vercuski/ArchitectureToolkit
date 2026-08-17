@@ -6,7 +6,7 @@ version: 0.1
 last_updated: TBD
 reviewers: TBD
 tags:
-  - interface_control_doucment
+  - interface_control_document
   - architecture
   - documentation
 ---
@@ -34,7 +34,7 @@ tags:
 ## 4. Error Handling & Retry
 TBD
 
-## 4. SLA
+## 5. SLA
 - Availability: TBD
 - Latency: TBD
 - Throughput: TBD

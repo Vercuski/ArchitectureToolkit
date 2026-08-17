@@ -12,12 +12,12 @@ tags:
 ---
 # Transition Architecture — {Project Name}
 
-## Purpose
+## 1. Purpose
 Describes interim architecture state(s) between current and target
 (TOGAF Phases E/F equivalent) — useful when migration happens in waves and
 the system must remain operational throughout.
 
-## 1. Transition State N: \<Name\>
+## 2. Transition State N: \<Name\>
 
 <!-- DIAGRAM: interim architecture diagram -->
 

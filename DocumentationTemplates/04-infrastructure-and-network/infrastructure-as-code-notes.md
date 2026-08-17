@@ -6,7 +6,7 @@ version: 0.1
 last_updated: TBD
 reviewers: TBD
 tags:
-  - IaC
+  - iac
   - architecture
   - documentation
 ---

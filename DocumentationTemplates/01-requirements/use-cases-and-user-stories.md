@@ -14,10 +14,10 @@ tags:
 
 # Use Cases / User Stories — {Project Name}
 
-## Use Case Template
+## 1 Use Case Template
 Copy this block per use case.
 
-### UC-1: \<Title\>
+### 1.1 UC-1: \<Title\>
 - **Actor(s):**
 - **Preconditions:**
 - **Main Flow:**
@@ -29,7 +29,7 @@ Copy this block per use case.
 
 ---
 
-## User Story Format (alternative)
+## 2. User Story Format (alternative)
 > As a <role>, I want <capability>, so that <benefit>.
 
 **Acceptance Criteria (Given/When/Then):**

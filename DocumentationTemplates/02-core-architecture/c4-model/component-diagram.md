@@ -2,7 +2,7 @@
 title: "C4 Model — Level 3: Component Diagram"
 status: draft
 owner: TBD
-version:
+version: 0.1
 last_updated: TBD
 reviewers: TBD
 tags:
