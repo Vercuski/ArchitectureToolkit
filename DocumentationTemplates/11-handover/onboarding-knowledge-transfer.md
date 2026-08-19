@@ -14,7 +14,7 @@ tags:
 # Onboarding / Knowledge Transfer — {Project Name}
 
 ## 1. System Overview (Quick Start)
-Link back to `../02-core-architecture/architecture-document.md`.
+Link back to `../02-core-architecture/solution-architecture-document.md`.
 
 ## 2. Local Dev Setup
 Step-by-step to get running locally.

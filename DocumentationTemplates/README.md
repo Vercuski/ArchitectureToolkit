@@ -45,7 +45,7 @@ Every template shares the same frontmatter block:
 ### 02 — Core Architecture
 | Template | Purpose |
 |---|---|
-| [Architecture Document (SAD)](02-core-architecture/architecture-document.md) | The umbrella document — a table of contents with connective narrative, linking out to everything below. |
+| [Solution Architecture Document (SAD)](02-core-architecture/solution-architecture-document.md) | The umbrella document — a table of contents with connective narrative, linking out to everything below. |
 | [Domain Model](02-core-architecture/domain-model.md) | Bounded contexts, ubiquitous language, entities, and aggregates — the conceptual, DDD-flavored counterpart to Data Architecture. |
 | [Data Architecture](02-core-architecture/data-architecture.md) | Physical/logical data concerns — storage, flow, retention, governance, classification. |
 | [Sequence Diagrams](02-core-architecture/sequence-diagrams.md) | Interaction diagrams for non-obvious, cross-service, or business-critical flows only. |
