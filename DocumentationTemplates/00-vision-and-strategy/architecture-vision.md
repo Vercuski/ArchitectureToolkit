@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - vision
-  - architecture
-  - documentation
 ---
 
 # Architecture Vision — {Project Name}

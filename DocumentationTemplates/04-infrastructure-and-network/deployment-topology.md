@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - deployment_topology
-  - architecture
-  - documentation
 ---
 # Deployment Topology — {Project Name}
 

@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - 4plus1
-  - architecture
-  - documentation
 ---
 
 # 4+1 View Model — {Project Name}

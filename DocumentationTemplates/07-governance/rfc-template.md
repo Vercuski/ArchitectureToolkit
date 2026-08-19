@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - rfc
-  - architecture
-  - documentation
 ---
 # RFC: \<Title\>
 

@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - disaster_recovery
-  - architecture
-  - documentation
 ---
 # Disaster Recovery Plan — {Project Name}
 

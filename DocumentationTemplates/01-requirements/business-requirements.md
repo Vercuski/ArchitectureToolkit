@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - business_requirements
-  - architecture
-  - documentation
 ---
 
 # Business Requirements — {Project Name}

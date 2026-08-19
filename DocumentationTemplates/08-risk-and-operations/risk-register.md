@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - risk_register
-  - architecture
-  - documentation
 ---
 # Risk Register — {Project Name}
 

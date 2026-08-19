@@ -8,8 +8,6 @@ reviewers: TBD
 tags:
   - context_diagram
   - system_design
-  - architecture
-  - documentation
 ---
 # C4 Model — Level 1: System Context — {Project Name}
 

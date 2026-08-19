@@ -8,8 +8,6 @@ reviewers: TBD
 tags:
   - compliance
   - review
-  - architecture
-  - documentation
 ---
 # Architecture Compliance Review — {Project Name}
 

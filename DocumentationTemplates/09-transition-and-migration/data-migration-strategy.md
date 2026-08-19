@@ -8,8 +8,6 @@ reviewers: TBD
 tags:
   - data_migration
   - strategy
-  - architecture
-  - documentation
 ---
 # Data Migration Strategy — {Project Name}
 

@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - gap_analysis
-  - architecture
-  - documentation
 ---
 # Gap Analysis — {Project Name}
 

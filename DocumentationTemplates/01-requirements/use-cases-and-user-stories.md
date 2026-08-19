@@ -8,8 +8,6 @@ reviewers: TBD
 tags:
   - use_cases
   - user_stories
-  - architecture
-  - documentation
 ---
 
 # Use Cases / User Stories — {Project Name}

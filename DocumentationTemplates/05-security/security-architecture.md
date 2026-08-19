@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - security_architecture
-  - architecture
-  - documentation
 ---
 # Security Architecture — {Project Name}
 

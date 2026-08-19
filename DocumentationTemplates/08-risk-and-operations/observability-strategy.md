@@ -8,8 +8,6 @@ reviewers: TBD
 tags:
   - observability
   - monitoring
-  - architecture
-  - documentation
 ---
 # Observability Strategy — {Project Name}
 

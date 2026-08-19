@@ -8,8 +8,6 @@ reviewers: TBD
 tags:
   - adr
   - template
-  - architecture
-  - documentation
 ---
 # ADR-XXXX: {Short title of decision}
 
@@ -18,7 +16,7 @@ tags:
 > once accepted — supersede it with a new one that links back.
 
 ## 1. Status
-Proposed | Accepted | Deprecated | Superseded by [ADR-XXXX]()
+Proposed | Accepted | Deprecated | Superseded by [ADR-XXXX](XXXX-title.md)
 
 ## 2. Context
 > What is the issue we're seeing that motivates this decision? State the

@@ -8,8 +8,6 @@ reviewers: TBD
 tags:
   - knowledge_transfer
   - onboarding
-  - architecture
-  - documentation
 ---
 # Onboarding / Knowledge Transfer — {Project Name}
 

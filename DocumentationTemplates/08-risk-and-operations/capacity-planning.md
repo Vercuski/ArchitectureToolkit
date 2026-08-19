@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - capacity_planning
-  - architecture
-  - documentation
 ---
 # Capacity Planning — {Project Name}
 

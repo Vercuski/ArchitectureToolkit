@@ -8,8 +8,6 @@ reviewers: TBD
 tags:
   - component_diagram
   - c4_model
-  - architecture
-  - documentation
 ---
 
 # C4 Model — Level 3: Component Diagram — {Project Name}

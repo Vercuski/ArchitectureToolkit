@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - transition
-  - architecture
-  - documentation
 ---
 # Transition Architecture — {Project Name}
 

@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - data_architecture
-  - architecture
-  - documentation
 ---
 
 # Data Architecture — {Project Name}

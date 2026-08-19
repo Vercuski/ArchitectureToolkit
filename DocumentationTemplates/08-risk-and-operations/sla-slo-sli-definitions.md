@@ -9,8 +9,6 @@ tags:
   - sla
   - slo
   - sli
-  - architecture
-  - documentation
 ---
 
 # SLOs, SLAs & Error Budgets — {Project Name}

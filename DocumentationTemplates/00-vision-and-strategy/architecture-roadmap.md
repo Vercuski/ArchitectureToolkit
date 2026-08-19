@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - roadmap
-  - architecture
-  - documentation
 ---
 
 # Architecture Roadmap — {Project Name}

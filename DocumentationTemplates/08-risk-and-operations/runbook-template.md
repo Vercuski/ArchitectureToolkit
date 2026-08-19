@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - runbook_template
-  - architecture
-  - documentation
 ---
 # Runbook — {Service/Scenario Name}
 

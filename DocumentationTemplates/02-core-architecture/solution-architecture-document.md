@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - architecture_document
-  - architecture
-  - documentation
 ---
 
 # Solution Architecture Document — {Project Name}

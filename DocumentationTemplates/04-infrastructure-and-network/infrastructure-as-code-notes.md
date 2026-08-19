@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - iac
-  - architecture
-  - documentation
 ---
 # Infrastructure as Code — {Project Name}
 

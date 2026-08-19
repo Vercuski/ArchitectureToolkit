@@ -8,8 +8,6 @@ reviewers: TBD
 tags:
   - governance
   - frameworks
-  - architecture
-  - documentation
 ---
 # Architecture Governance Framework — {Project Name}
 

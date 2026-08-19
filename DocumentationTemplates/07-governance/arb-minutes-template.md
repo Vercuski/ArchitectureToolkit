@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - arb
-  - architecture
-  - documentation
 ---
 # Architecture Review Board — Minutes
 

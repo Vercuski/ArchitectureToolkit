@@ -5,8 +5,6 @@ date: TBD
 deciders: TBD
 tags:
   - adr
-  - architecture
-  - documentation
 ---
 # ADR-0001: Record Architecture Decisions
 

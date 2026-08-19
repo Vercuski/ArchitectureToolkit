@@ -9,8 +9,6 @@ tags:
   - container_diagram
   - containerization
   - c4_model
-  - architecture
-  - documentation
 ---
 # C4 Model — Level 2: Container Diagram — {Project Name}
 

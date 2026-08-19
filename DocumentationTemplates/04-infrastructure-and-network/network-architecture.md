@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - network_architecture
-  - architecture
-  - documentation
 ---
 # Network Architecture — {Project Name}
 

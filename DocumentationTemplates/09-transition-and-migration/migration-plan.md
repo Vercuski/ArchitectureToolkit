@@ -8,8 +8,6 @@ reviewers: TBD
 tags:
   - migration
   - plan
-  - architecture
-  - documentation
 ---
 # Migration Plan — {Project Name}
 

@@ -8,8 +8,6 @@ reviewers: TBD
 tags:
   - coding_practices
   - standards
-  - architecture
-  - documentation
 ---
 # Coding Standards / Guidelines — {Project Name}
 

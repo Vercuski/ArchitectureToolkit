@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - threat_model
-  - architecture
-  - documentation
 ---
 # Threat Model — {Project Name}
 

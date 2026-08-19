@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - domain_model
-  - architecture
-  - documentation
 ---
 # Domain Model — {Project Name}
 

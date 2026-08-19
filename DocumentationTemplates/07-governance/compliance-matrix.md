@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - compliance_matrix
-  - architecture
-  - documentation
 ---
 # Compliance Matrix — {Project Name}
 

@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - incident_postmortem
-  - architecture
-  - documentation
 ---
 # Incident Postmortem — {Incident Name}
 

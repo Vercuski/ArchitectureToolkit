@@ -23,7 +23,7 @@ Every template shares the same frontmatter block:
 | `version` | Semantic-ish version of the document itself |
 | `last_updated` | Date of last substantive edit |
 | `reviewers` | Who signed off (or needs to) |
-| `tags` | Used for Obsidian search/graph filtering |
+| `tags` | Used for Obsidian search/graph filtering — keep these specific to the document (see Contributing, below); don't add tags that would apply across the whole library |
 
 ## Template index
 
@@ -159,6 +159,7 @@ When adding a new template:
 2. Use the shared frontmatter block.
 3. Link out to related templates rather than duplicating their content.
 4. Add a row to this README's index table.
+5. Keep `tags` specific to the document. Don't add a tag just because it's technically true of every template in the library (e.g. "architecture", "documentation") — a tag every file shares gives Obsidian's graph/search no way to filter on it. If you're tempted to add one, ask whether it would exclude *any* template in this library; if not, leave it out.
 
 ## License
 

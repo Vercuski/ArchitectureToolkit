@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - integration_architecture
-  - architecture
-  - documentation
 ---
 # Integration Architecture — {Project Name}
 

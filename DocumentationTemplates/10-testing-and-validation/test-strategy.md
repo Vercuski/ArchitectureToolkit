@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - test_strategy
-  - architecture
-  - documentation
 ---
 # Test Strategy — {Project Name}
 

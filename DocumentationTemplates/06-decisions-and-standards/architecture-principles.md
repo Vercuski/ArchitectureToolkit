@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - principles
-  - architecture
-  - documentation
 ---
 # Architecture Principles — {Project Name}
 

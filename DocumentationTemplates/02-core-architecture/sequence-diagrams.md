@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - sequence_diagram
-  - architecture
-  - documentation
 ---
 # Sequence Diagrams — {Project Name}
 

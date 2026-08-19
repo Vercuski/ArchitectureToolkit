@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - functional_requirements
-  - architecture
-  - documentation
 ---
 
 # Functional Requirements Specification — {Project Name}

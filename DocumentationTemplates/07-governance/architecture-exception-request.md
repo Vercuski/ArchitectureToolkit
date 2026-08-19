@@ -8,8 +8,6 @@ reviewers: TBD
 tags:
   - exception_request
   - governance
-  - architecture
-  - documentation
 ---
 # Architecture Exception Request — \<Short Title\>
 

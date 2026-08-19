@@ -8,8 +8,6 @@ reviewers: TBD
 tags:
   - adr
   - log
-  - architecture
-  - documentation
 ---
 # Architecture Decision Record Log
 

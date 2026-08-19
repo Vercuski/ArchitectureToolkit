@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - as_built
-  - architecture
-  - documentation
 ---
 # As-Built Documentation — {Project Name}
 

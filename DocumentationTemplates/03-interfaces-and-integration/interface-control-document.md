@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - interface_control_document
-  - architecture
-  - documentation
 ---
 # Interface Control Document — {System A} ↔ {System B}
 

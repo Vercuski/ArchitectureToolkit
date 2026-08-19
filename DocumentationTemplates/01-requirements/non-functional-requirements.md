@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - non_functional_requirements
-  - architecture
-  - documentation
 ---
 
 # Non-Functional Requirements — {Project Name}

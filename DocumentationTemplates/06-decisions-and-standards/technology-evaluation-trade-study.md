@@ -8,8 +8,6 @@ reviewers: TBD
 tags:
   - technology_evaluation
   - trade_study
-  - architecture
-  - documentation
 ---
 
 # Technology Evaluation / Trade Study — {Decision Topic}

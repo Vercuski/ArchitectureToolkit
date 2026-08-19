@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - api_specification_guide
-  - architecture
-  - documentation
 ---
 # API Specifications — {Project Name}
 

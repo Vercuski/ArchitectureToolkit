@@ -8,8 +8,6 @@ reviewers: TBD
 tags:
   - reference_architecture
   - tech_radar
-  - architecture
-  - documentation
 ---
 # Reference Architecture, Standards & Technology Radar — {Org/Project Name}
 

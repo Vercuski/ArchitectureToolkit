@@ -7,8 +7,6 @@ last_updated: TBD
 reviewers: TBD
 tags:
   - business_case
-  - architecture
-  - documentation
 ---
 
 # Business Case — {Project Name}
