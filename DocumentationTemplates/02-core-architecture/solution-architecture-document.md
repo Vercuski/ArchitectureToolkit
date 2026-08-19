@@ -1,5 +1,5 @@
 ---
-title: Software / Solution Architecture Document (SAD)
+title: Solution Architecture Document (SAD)
 status: draft
 owner: TBD
 version: 0.1
@@ -11,7 +11,7 @@ tags:
   - documentation
 ---
 
-# Architecture Document — {Project Name}
+# Solution Architecture Document — {Project Name}
 
 > Guidance: This is the umbrella document. Most sections should link out
 > to dedicated docs (ADRs, domain model, C4 diagrams) rather than
@@ -77,8 +77,8 @@ See `data-architecture.md` and `domain-model.md`.
 ## 7. Key Architecture Decisions
 > Guidance: Don't repeat full ADRs here — summarize and link.
 
-| ADR | Decision | Status |
-|---|---|---|
+| ADR | Decision | Status | Date |
+|---|---|---|---|
 | [0001](../06-decisions-and-standards/adr/0001-record-architecture-decisions.md) | Record Architecture Decisions | Accepted | TBD |
 
 Full detail in `../06-decisions-and-standards/adr/`.
