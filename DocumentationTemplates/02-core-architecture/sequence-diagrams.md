@@ -2,7 +2,7 @@
 title: Key Sequence / Interaction Diagrams
 status: draft
 owner: TBD
-version: 0.1
+version: 1.0.0
 last_updated: TBD
 reviewers: TBD
 tags:

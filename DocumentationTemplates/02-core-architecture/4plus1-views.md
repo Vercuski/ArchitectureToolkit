@@ -2,7 +2,7 @@
 title: 4+1 Architectural View Model
 status: draft
 owner: TBD
-version: 0.1
+version: 1.0.0
 last_updated: TBD
 reviewers: TBD
 tags:

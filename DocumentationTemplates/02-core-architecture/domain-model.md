@@ -2,7 +2,7 @@
 title: Domain Model / Conceptual Data Model
 status: draft
 owner: TBD
-version: 0.1
+version: 1.0.0
 last_updated: TBD
 reviewers: TBD
 tags:
