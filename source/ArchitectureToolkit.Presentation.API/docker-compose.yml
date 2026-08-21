@@ -1,0 +1,53 @@
+# ArchitectureToolkit — base stack (ADR-0008, ADR-0010, ADR-0011)
+#
+# Default: two services, plain HTTP, db not reachable from the host.
+# Bring your own reverse proxy/tunnel for TLS (ADR-0010), or opt in to
+# the bundled Caddy proxy:
+#   docker compose -f docker-compose.yml -f docker-compose.with-proxy.yml up
+#
+# For direct DB tool access (DBeaver, pgAdmin, etc.), opt in separately:
+#   docker compose -f docker-compose.yml -f docker-compose.expose-db.yml up
+
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    expose:
+      - "5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./source
+      dockerfile: ArchitectureToolkit.Presentation.API/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      # Kestrel serves HTTP only in every Compose context — TLS, if any,
+      # is always terminated externally (ADR-0010). This is independent
+      # of launchSettings.json's "Container (Dockerfile)" profile, which
+      # only applies to `dotnet run`/VS debugging, never to this image.
+      ASPNETCORE_HTTP_PORTS: "8080"
+      # NOTE: confirm this key matches whatever Persistence's DbContext
+      # registration actually reads from configuration — this assumes
+      # the standard ASP.NET Core double-underscore convention for
+      # ConnectionStrings:Default.
+      ConnectionStrings__Default: "Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+    ports:
+      - "8080:8080"
+
+volumes:
+  db-data:

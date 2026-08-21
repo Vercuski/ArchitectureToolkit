@@ -1,0 +1,13 @@
+# ArchitectureToolkit — optional direct DB access overlay (ADR-0011)
+#
+# Usage: docker compose -f docker-compose.yml -f docker-compose.expose-db.yml up
+#
+# Publishes Postgres to loopback only (127.0.0.1), never 0.0.0.0 — for
+# connecting a local GUI tool (DBeaver, pgAdmin, TablePlus) directly.
+# Backups and ad-hoc queries never need this; `docker compose exec db
+# pg_dump ...` works regardless of whether this overlay is applied.
+
+services:
+  db:
+    ports:
+      - "127.0.0.1:5432:5432"

@@ -10,6 +10,10 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["ArchitectureToolkit.Presentation.API/ArchitectureToolkit.Presentation.API.csproj", "ArchitectureToolkit.Presentation.API/"]
+COPY ["ArchitectureToolkit.Application/ArchitectureToolkit.Application.csproj", "ArchitectureToolkit.Application/"]
+COPY ["ArchitectureToolkit.Domain/ArchitectureToolkit.Domain.csproj", "ArchitectureToolkit.Domain/"]
+COPY ["ArchitectureToolkit.Infrastructure/ArchitectureToolkit.Infrastructure.csproj", "ArchitectureToolkit.Infrastructure/"]
+COPY ["ArchitectureToolkit.Persistence/ArchitectureToolkit.Persistence.csproj", "ArchitectureToolkit.Persistence/"]
 RUN dotnet restore "./ArchitectureToolkit.Presentation.API/ArchitectureToolkit.Presentation.API.csproj"
 COPY . .
 WORKDIR "/src/ArchitectureToolkit.Presentation.API"

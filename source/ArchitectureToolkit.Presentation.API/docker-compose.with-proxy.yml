@@ -1,0 +1,34 @@
+# ArchitectureToolkit — optional bundled TLS overlay (ADR-0010)
+#
+# Usage: docker compose -f docker-compose.yml -f docker-compose.with-proxy.yml up
+#
+# Adds Caddy, which automatically obtains and renews a Let's Encrypt
+# certificate and forwards plain HTTP to `api` internally. Removes
+# api's direct host port mapping so the raw HTTP port is no longer
+# separately reachable, bypassing Caddy's TLS.
+#
+# Requires DOMAIN to be set in .env to a hostname that already resolves
+# to this host — Let's Encrypt's HTTP-01 challenge needs that to work.
+
+services:
+  api:
+    ports: []
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  caddy-data:
+  caddy-config:
