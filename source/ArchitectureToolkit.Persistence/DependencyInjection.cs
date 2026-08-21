@@ -51,9 +51,7 @@ public static class DependencyInjection
     {
         return platform.ToUpperInvariant() switch
         {
-            "MSSQL" => new SqlServerDatabaseProvider(),
             "POSTGRESQL" => new PostgreSqlDatabaseProvider(),
-            "MYSQL" => new MySQLDatabaseProvider(),
             _ => throw new NotSupportedException($"{side} Database platform '{platform}' is not supported.")
         };
     }
