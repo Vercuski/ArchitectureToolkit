@@ -1,5 +1,5 @@
-using NetArchTest.Rules;
 using ArchitectureToolkit.Domain.Abstractions;
+using NetArchTest.Rules;
 using static ArchitectureToolkit.Tests.ArchitectureTests.AssemblyReferences;
 
 namespace ArchitectureToolkit.Tests.ArchitectureTests;

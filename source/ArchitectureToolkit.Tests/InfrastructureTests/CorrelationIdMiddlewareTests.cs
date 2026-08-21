@@ -1,6 +1,6 @@
+using ArchitectureToolkit.Infrastructure.Correlation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
-using ArchitectureToolkit.Infrastructure.Correlation;
 
 namespace ArchitectureToolkit.Tests.InfrastructureTests;
 

@@ -1,11 +1,11 @@
+using ArchitectureToolkit.Infrastructure.Correlation;
+using ArchitectureToolkit.Infrastructure.HealthChecks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using ArchitectureToolkit.Infrastructure.Correlation;
-using ArchitectureToolkit.Infrastructure.HealthChecks;
 using System.Reflection;
 
 namespace ArchitectureToolkit.Infrastructure;

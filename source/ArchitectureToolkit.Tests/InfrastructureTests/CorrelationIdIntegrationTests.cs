@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Mvc.Testing;
 using ArchitectureToolkit.Infrastructure.Correlation;
 using ArchitectureToolkit.Presentation.API;
+using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace ArchitectureToolkit.Tests.InfrastructureTests;
 
@@ -17,7 +17,7 @@ public class CorrelationIdIntegrationTests
     [SetUp]
     public void SetUp()
     {
-        
+
     }
 
     [TearDown]

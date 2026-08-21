@@ -1,6 +1,6 @@
+using ArchitectureToolkit.Application.Behaviors;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using ArchitectureToolkit.Application.Behaviors;
 
 namespace ArchitectureToolkit.Application;
 

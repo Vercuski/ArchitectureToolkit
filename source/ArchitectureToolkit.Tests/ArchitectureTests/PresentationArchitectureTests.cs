@@ -34,29 +34,4 @@ public class PresentationArchitectureTests
         }
         Assert.That(result.IsSuccessful, Is.True);
     }
-
-    [Test]
-    public void Controllers_ShouldNot_ReferenceDapperDirectly()
-    {
-        // Same rationale as ApplicationAssembly_ShouldNot_ReferenceDapper: raw SQL access belongs
-        // behind a repository abstraction in Persistence, invoked through Application/MediatR —
-        // never directly in a controller.
-        var result = Types
-            .InAssembly(PresentationAssembly)
-            .That()
-            .ResideInNamespace(ControllersNamespace)
-            .ShouldNot()
-            .HaveDependencyOn("Dapper")
-            .GetResult();
-
-        if (result.FailingTypeNames != null && result.FailingTypeNames.Any())
-        {
-            Console.WriteLine("Controllers Referencing Dapper:");
-            foreach (var failingType in result.FailingTypeNames)
-            {
-                Console.WriteLine($"    {failingType}");
-            }
-        }
-        Assert.That(result.IsSuccessful, Is.True);
-    }
 }

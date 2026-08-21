@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using ArchitectureToolkit.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace ArchitectureToolkit.Persistence.Contexts;
 

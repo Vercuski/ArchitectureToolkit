@@ -1,7 +1,7 @@
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging.Abstractions;
 using ArchitectureToolkit.Infrastructure.Correlation;
 using ArchitectureToolkit.Infrastructure.Exceptions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging.Abstractions;
 using System.Text.Json;
 
 namespace ArchitectureToolkit.Tests.InfrastructureTests;

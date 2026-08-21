@@ -1,7 +1,7 @@
 
-using Microsoft.EntityFrameworkCore;
 using ArchitectureToolkit.Application.Abstractions.Context;
 using ArchitectureToolkit.Domain.Abstractions;
+using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 
 namespace ArchitectureToolkit.Persistence.Contexts;

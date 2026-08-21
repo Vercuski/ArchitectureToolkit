@@ -1,4 +1,4 @@
-# ArchitectureToolkit — base stack (ADR-0008, ADR-0010, ADR-0011)
+# ArchitectureToolkit — base stack (ADR-0008, ADR-0010, ADR-0011, ADR-0012)
 #
 # Default: two services, plain HTTP, db not reachable from the host.
 # Bring your own reverse proxy/tunnel for TLS (ADR-0010), or opt in to
@@ -28,8 +28,8 @@ services:
 
   api:
     build:
-      context: ./source
-      dockerfile: ArchitectureToolkit.Presentation.API/Dockerfile
+      context: .
+      dockerfile: Dockerfile
     restart: unless-stopped
     depends_on:
       db:
@@ -41,11 +41,22 @@ services:
       # of launchSettings.json's "Container (Dockerfile)" profile, which
       # only applies to `dotnet run`/VS debugging, never to this image.
       ASPNETCORE_HTTP_PORTS: "8080"
-      # NOTE: confirm this key matches whatever Persistence's DbContext
-      # registration actually reads from configuration — this assumes
-      # the standard ASP.NET Core double-underscore convention for
-      # ConnectionStrings:Default.
-      ConnectionStrings__Default: "Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+
+      # ConnectionStringOptions binds to the "ConnectionStrings" section
+      # with two named properties (source/ArchitectureToolkit.Persistence
+      # /Options/ConnectionStringOptions.cs) — not a single "Default" key.
+      # Per ADR-0012, Command and Query both target the same physical
+      # database today, so both values are identical; they're declared
+      # separately because the code treats them as independently
+      # configurable (e.g. a future read replica needs no code change).
+      ConnectionStrings__QueryDbConnection: "Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      ConnectionStrings__CommandDbConnection: "Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+
+      # DatabasePlatformOptions is also required — AddDatabaseProviderRegistration
+      # throws at startup without it. PostgreSQL is now the only value
+      # CreateDatabaseProvider accepts, since MySQL/MSSQL were removed.
+      DatabasePlatform__QueryDbPlatform: PostgreSQL
+      DatabasePlatform__CommandDbPlatform: PostgreSQL
     ports:
       - "8080:8080"
 

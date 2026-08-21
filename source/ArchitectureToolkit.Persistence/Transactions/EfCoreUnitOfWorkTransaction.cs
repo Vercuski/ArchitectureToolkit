@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore.Storage;
 using ArchitectureToolkit.Application.Abstractions;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ArchitectureToolkit.Persistence.Transactions;
 

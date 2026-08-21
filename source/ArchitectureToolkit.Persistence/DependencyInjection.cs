@@ -1,17 +1,13 @@
+using ArchitectureToolkit.Application.Abstractions;
+using ArchitectureToolkit.Application.Abstractions.Context;
+using ArchitectureToolkit.Domain.Abstractions;
+using ArchitectureToolkit.Persistence.Contexts;
+using ArchitectureToolkit.Persistence.Options;
+using ArchitectureToolkit.Persistence.Providers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using ArchitectureToolkit.Application.Abstractions;
-using ArchitectureToolkit.Application.Abstractions.ConnectionFactory;
-using ArchitectureToolkit.Application.Abstractions.Context;
-using ArchitectureToolkit.Application.Abstractions.Repositories;
-using ArchitectureToolkit.Domain.Abstractions;
-using ArchitectureToolkit.Persistence.ConnectionFactory;
-using ArchitectureToolkit.Persistence.Contexts;
-using ArchitectureToolkit.Persistence.Options;
-using ArchitectureToolkit.Persistence.Providers;
-using ArchitectureToolkit.Persistence.Repositories;
 
 namespace ArchitectureToolkit.Persistence;
 
@@ -41,7 +37,6 @@ public static class DependencyInjection
         var queryDatabaseProvider = CreateDatabaseProvider(databasePlatformOptions.QueryDbPlatform, "Query");
         var commandDatabaseProvider = CreateDatabaseProvider(databasePlatformOptions.CommandDbPlatform, "Command");
 
-        builder.AddDapperPersistenceRegistrations(queryDatabaseProvider, commandDatabaseProvider);
         builder.AddEFCorePersistenceRegistrations(queryDatabaseProvider, commandDatabaseProvider);
 
         return builder;
@@ -54,27 +49,6 @@ public static class DependencyInjection
             "POSTGRESQL" => new PostgreSqlDatabaseProvider(),
             _ => throw new NotSupportedException($"{side} Database platform '{platform}' is not supported.")
         };
-    }
-
-    private static IHostApplicationBuilder AddDapperPersistenceRegistrations(
-        this IHostApplicationBuilder builder,
-        IDatabaseProvider queryDatabaseProvider,
-        IDatabaseProvider commandDatabaseProvider)
-    {
-        builder.Services.AddScoped<IDbReadOnlyConnectionFactory>(sp =>
-            new DbReadOnlyConnectionFactory(
-                sp.GetRequiredService<IOptions<ConnectionStringOptions>>(),
-                queryDatabaseProvider));
-
-        builder.Services.AddScoped<IDbWriteConnectionFactory>(sp =>
-            new DbWriteConnectionFactory(
-                sp.GetRequiredService<IOptions<ConnectionStringOptions>>(),
-                commandDatabaseProvider));
-
-        builder.Services.AddScoped<ISampleEntityDapperQueryRepository, SampleEntityDapperQueryRepository>();
-        builder.Services.AddScoped<ISampleEntityDapperCommandRepository, SampleEntityDapperCommandRepository>();
-
-        return builder;
     }
 
     private static IHostApplicationBuilder AddEFCorePersistenceRegistrations(

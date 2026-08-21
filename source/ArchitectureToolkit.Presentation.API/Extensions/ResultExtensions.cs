@@ -1,5 +1,5 @@
-using Microsoft.AspNetCore.Mvc;
 using ArchitectureToolkit.Application.Abstractions;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ArchitectureToolkit.Presentation.API.Extensions;
 
