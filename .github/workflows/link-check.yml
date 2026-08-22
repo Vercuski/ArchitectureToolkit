@@ -10,23 +10,6 @@ permissions:
   contents: read
 
 jobs:
-  markdown-link-check:
-    name: markdown-link-check
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      # NOTE: gaurav-nelson/github-action-markdown-link-check is deprecated by
-      # its own maintainer in favor of tcort/github-action-markdown-link-check
-      # (same underlying tcort/markdown-link-check engine, same config format).
-      - name: Run markdown-link-check
-        uses: tcort/github-action-markdown-link-check@v1
-        with:
-          use-quiet-mode: 'yes'
-          use-verbose-mode: 'yes'
-          config-file: '.github/mlc-config.json'
-
   lychee:
     name: lychee
     runs-on: ubuntu-latest
