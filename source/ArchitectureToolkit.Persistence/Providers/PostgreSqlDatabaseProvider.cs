@@ -10,9 +10,4 @@ public sealed class PostgreSqlDatabaseProvider : IDatabaseProvider
     {
         optionsBuilder.UseNpgsql(connectionString);
     }
-
-    public IDbConnection CreateConnection(string connectionString)
-    {
-        return new NpgsqlConnection(connectionString);
-    }
 }
