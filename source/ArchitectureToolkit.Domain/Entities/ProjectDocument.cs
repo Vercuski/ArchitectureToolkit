@@ -33,7 +33,7 @@ public sealed class ProjectDocument : Entity
     public Guid? CurrentRevisionId { get; private set; }
     public VersionNumber? CurrentVersion { get; private set; }
 
-    private readonly List<DocumentRevision> _revisions = new();
+    private readonly List<DocumentRevision> _revisions = [];
     public IReadOnlyCollection<DocumentRevision> Revisions => _revisions.AsReadOnly();
 
     public ProjectDocument(Guid projectId, Guid categoryId, string title, Guid? sourceTemplateRevisionId = null)
