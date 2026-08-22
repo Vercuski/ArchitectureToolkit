@@ -6,6 +6,18 @@ WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
 
+# Builds the Vue 3 SPA independently of the .NET stages below — this
+# stage has no FROM dependency on `build`, so Docker can build it in
+# parallel. Output lands in wwwroot just before `dotnet publish` runs,
+# so the Web SDK's automatic wwwroot->publish-output copy (built into
+# Microsoft.NET.Sdk.Web, no .csproj changes needed) picks it up for free.
+FROM node:22-alpine AS client-build
+WORKDIR /client
+COPY ["ArchitectureToolkit.Client/package.json", "ArchitectureToolkit.Client/package-lock.json", "./"]
+RUN npm ci
+COPY ["ArchitectureToolkit.Client/", "./"]
+RUN npm run build
+
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
@@ -21,6 +33,7 @@ RUN dotnet build "./ArchitectureToolkit.Presentation.API.csproj" -c "$BUILD_CONF
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
+COPY --from=client-build /client/dist ./wwwroot
 RUN dotnet publish "./ArchitectureToolkit.Presentation.API.csproj" -c "$BUILD_CONFIGURATION" -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
