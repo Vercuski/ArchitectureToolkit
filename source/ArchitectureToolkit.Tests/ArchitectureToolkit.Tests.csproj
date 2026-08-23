@@ -34,7 +34,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DomainTests\" />
     <Folder Include="ApplicationTests\" />
     <Folder Include="PresentationTests\" />
   </ItemGroup>
