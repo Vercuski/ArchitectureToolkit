@@ -2,6 +2,8 @@ using ArchitectureToolkit.Application;
 using ArchitectureToolkit.Infrastructure;
 using ArchitectureToolkit.Infrastructure.Exceptions;
 using ArchitectureToolkit.Persistence;
+using ArchitectureToolkit.Persistence.Contexts;
+using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +18,19 @@ builder.AddInfrastructureRegistration();
 builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
+
+// ADR-0015: auto-apply migrations on startup so a fresh `docker compose up`
+// needs no separate `dotnet ef database update` step. Skipped in the
+// `Testing` environment (see ArchitectureToolkit.Tests' AssemblySetup) so
+// WebApplicationFactory-based tests that never touch the database — e.g.
+// CorrelationIdIntegrationTests hitting /health — don't require a reachable
+// PostgreSQL instance just to boot the host.
+if (!app.Environment.IsEnvironment("Testing"))
+{
+    using var migrationScope = app.Services.CreateScope();
+    var commandDbContext = migrationScope.ServiceProvider.GetRequiredService<CommandDbContext>();
+    await commandDbContext.Database.MigrateAsync();
+}
 
 if (!app.Environment.IsProduction())
 {
