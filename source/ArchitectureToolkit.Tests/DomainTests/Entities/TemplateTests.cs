@@ -55,26 +55,22 @@ public class TemplateTests
     }
 
     [Test]
-    public void CreateRevision_First_Should_IgnoreBumpType_ForVersioning_ButStillRecordItVerbatim()
+    public void CreateRevision_First_Should_ResolveBumpTypeToNull_EvenIfCallerSuppliesOne()
     {
-        // NOTE: this documents an observed discrepancy, not a designed
-        // behavior. TemplateRevision.BumpType's own doc comment says it's
-        // "Null only for a Template's very first revision" — but nothing in
-        // Template.CreateRevision actually nulls out a caller-supplied
-        // bumpType on the first call; RevisionHistory<T> only ignores it for
-        // *version calculation*, and the factory closure captures the raw
-        // bumpType parameter regardless. If a caller passes a non-null
-        // bumpType on the very first revision, it's stored on the resulting
-        // TemplateRevision as-is, contradicting that doc comment. Worth a
-        // decision: either CreateRevision should force bumpType to null when
-        // CurrentRevisionId is null, or the doc comment should be corrected
-        // to describe actual behavior.
+        // Previously, a caller-supplied bumpType on the very first
+        // CreateRevision call would end up stored verbatim on the resulting
+        // TemplateRevision, contradicting its own doc comment ("Null only
+        // for a Template's very first revision"). Fixed in
+        // RevisionHistory<T>.AppendRevision, which now resolves the bump
+        // type to null for the first revision and passes that resolved
+        // value into the factory, rather than each aggregate's factory
+        // closure capturing the raw parameter.
         var template = new Template(Guid.NewGuid(), "Architecture Vision");
 
         var revision = template.CreateRevision(null, BumpType.Major, "content", Guid.NewGuid());
 
         Assert.That(revision.Version, Is.EqualTo(VersionNumber.Initial));
-        Assert.That(revision.BumpType, Is.EqualTo(BumpType.Major));
+        Assert.That(revision.BumpType, Is.Null);
     }
 
     [Test]

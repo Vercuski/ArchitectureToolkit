@@ -16,13 +16,15 @@ internal sealed class FakeRevision : IRevision
 {
     public Guid Id { get; }
     public VersionNumber Version { get; }
+    public BumpType? BumpType { get; }
     public string Content { get; }
     public Guid AuthorId { get; }
 
-    public FakeRevision(VersionNumber version, string content, Guid authorId)
+    public FakeRevision(VersionNumber version, BumpType? bumpType, string content, Guid authorId)
     {
         Id = Guid.NewGuid();
         Version = version;
+        BumpType = bumpType;
         Content = content;
         AuthorId = authorId;
     }

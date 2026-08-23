@@ -73,6 +73,21 @@ public class ProjectDocumentTests
     }
 
     [Test]
+    public void CreateRevision_First_Should_ResolveBumpTypeToNull_EvenIfCallerSuppliesOne()
+    {
+        // Same fix as Template.CreateRevision (see TemplateTests): a
+        // caller-supplied bumpType on the very first CreateRevision call
+        // now resolves to null, matching DocumentRevision.BumpType's own
+        // doc comment, instead of being stored verbatim.
+        var document = new ProjectDocument(Guid.NewGuid(), Guid.NewGuid(), "Architecture Vision");
+
+        var revision = document.CreateRevision(null, BumpType.Major, "content", Guid.NewGuid());
+
+        Assert.That(revision.Version, Is.EqualTo(VersionNumber.Initial));
+        Assert.That(revision.BumpType, Is.Null);
+    }
+
+    [Test]
     public void CreateRevision_Should_ThrowRevisionConflictException_When_ExpectedIdDoesNotMatch()
     {
         var document = new ProjectDocument(Guid.NewGuid(), Guid.NewGuid(), "Architecture Vision");

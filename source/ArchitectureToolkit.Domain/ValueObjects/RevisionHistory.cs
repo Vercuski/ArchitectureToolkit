@@ -53,15 +53,20 @@ public sealed class RevisionHistory<TRevision>
     /// <param name="authorId">The authoring user's Id.</param>
     /// <param name="factory">
     /// Builds the concrete <typeparamref name="TRevision"/> from the resolved version,
-    /// content, and author — the caller supplies any type-specific data (e.g. the owning
-    /// Template's Id) via closure.
+    /// resolved bump type, content, and author — the caller supplies any type-specific
+    /// data (e.g. the owning Template's Id) via closure. The bump type passed here is
+    /// the *resolved* value (always null for the first revision, regardless of what the
+    /// caller passed in), not the raw <paramref name="bumpType"/> parameter — callers
+    /// must use this parameter rather than closing over their own <c>bumpType</c>
+    /// variable, or a caller-supplied bump type could leak onto a first revision's
+    /// stored BumpType despite being ignored for versioning.
     /// </param>
     public TRevision AppendRevision(
         Guid? expectedCurrentRevisionId,
         BumpType? bumpType,
         string content,
         Guid authorId,
-        Func<VersionNumber, string, Guid, TRevision> factory)
+        Func<VersionNumber, BumpType?, string, Guid, TRevision> factory)
     {
         ArgumentNullException.ThrowIfNull(factory);
 
@@ -71,11 +76,14 @@ public sealed class RevisionHistory<TRevision>
         }
 
         VersionNumber newVersion;
+        BumpType? resolvedBumpType;
         if (CurrentVersion is null)
         {
-            // First revision ever: nothing to bump from. Every template/document is
-            // seeded at 1.0.0 regardless of the requested bumpType (ADR-0013).
+            // First revision ever: nothing to bump from, and nothing was actually
+            // bumped — so the resolved bump type is null regardless of what the
+            // caller passed, not just the version (ADR-0013).
             newVersion = VersionNumber.Initial;
+            resolvedBumpType = null;
         }
         else
         {
@@ -86,9 +94,10 @@ public sealed class RevisionHistory<TRevision>
                     "A bump type is required for every revision after the first.");
             }
             newVersion = CurrentVersion.Value.Bump(bumpType.Value);
+            resolvedBumpType = bumpType;
         }
 
-        var revision = factory(newVersion, content, authorId);
+        var revision = factory(newVersion, resolvedBumpType, content, authorId);
 
         CurrentRevisionId = revision.Id;
         CurrentVersion = revision.Version;

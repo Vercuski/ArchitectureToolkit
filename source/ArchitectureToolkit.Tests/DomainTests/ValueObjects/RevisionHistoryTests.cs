@@ -6,8 +6,8 @@ namespace ArchitectureToolkit.Tests.DomainTests.ValueObjects;
 [TestFixture]
 public class RevisionHistoryTests
 {
-    private static FakeRevision Factory(VersionNumber version, string content, Guid authorId) =>
-        new(version, content, authorId);
+    private static FakeRevision Factory(VersionNumber version, BumpType? bumpType, string content, Guid authorId) =>
+        new(version, bumpType, content, authorId);
 
     [Test]
     public void Constructor_Should_Allow_BothNull()
@@ -65,16 +65,22 @@ public class RevisionHistoryTests
     }
 
     [Test]
-    public void AppendRevision_FirstRevision_Should_IgnoreBumpType_ForVersioning()
+    public void AppendRevision_FirstRevision_Should_ResolveBumpTypeToNull_EvenIfCallerSuppliesOne()
     {
-        // ADR-0013: the very first revision is always 1.0.0, regardless of
-        // whatever bumpType the caller passes — there is nothing to bump
-        // from yet.
+        // ADR-0013: the very first revision is always 1.0.0, and nothing was
+        // actually bumped to get there — so the *resolved* bump type passed
+        // to the factory must be null too, regardless of what the caller
+        // passes in. (Previously this wasn't enforced here: the raw
+        // parameter reached each aggregate's factory closure unchanged, so
+        // a caller-supplied bumpType could end up stored on the first
+        // TemplateRevision/DocumentRevision despite being ignored for
+        // versioning. Fixed by resolving it here, once, for every caller.)
         var history = new RevisionHistory<FakeRevision>();
 
         var revision = history.AppendRevision(null, BumpType.Major, "content", Guid.NewGuid(), Factory);
 
         Assert.That(revision.Version, Is.EqualTo(VersionNumber.Initial));
+        Assert.That(revision.BumpType, Is.Null);
     }
 
     [Test]
@@ -115,6 +121,7 @@ public class RevisionHistoryTests
             history.CurrentRevisionId, bumpType, "content", Guid.NewGuid(), Factory);
 
         Assert.That(revision.Version, Is.EqualTo(new VersionNumber(expectedMajor, expectedMinor, expectedPatch)));
+        Assert.That(revision.BumpType, Is.EqualTo(bumpType));
     }
 
     [Test]

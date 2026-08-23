@@ -53,8 +53,8 @@ public sealed class Template : Entity
             bumpType,
             content,
             authorId,
-            (version, revisionContent, revisionAuthorId) =>
-                new TemplateRevision(Id, version, bumpType, revisionContent, revisionAuthorId));
+            (version, resolvedBumpType, revisionContent, revisionAuthorId) =>
+                new TemplateRevision(Id, version, resolvedBumpType, revisionContent, revisionAuthorId));
 
         CurrentRevisionId = revisionHistory.CurrentRevisionId;
         CurrentVersion = revisionHistory.CurrentVersion;

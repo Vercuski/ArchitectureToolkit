@@ -73,8 +73,8 @@ public sealed class ProjectDocument : Entity
             bumpType,
             content,
             authorId,
-            (version, revisionContent, revisionAuthorId) =>
-                new DocumentRevision(Id, version, bumpType, revisionContent, revisionAuthorId));
+            (version, resolvedBumpType, revisionContent, revisionAuthorId) =>
+                new DocumentRevision(Id, version, resolvedBumpType, revisionContent, revisionAuthorId));
 
         CurrentRevisionId = revisionHistory.CurrentRevisionId;
         CurrentVersion = revisionHistory.CurrentVersion;
