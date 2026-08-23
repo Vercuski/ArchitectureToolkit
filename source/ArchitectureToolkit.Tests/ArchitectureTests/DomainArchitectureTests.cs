@@ -10,10 +10,17 @@ public class DomainArchitectureTests
     [Test]
     public void DomainEntities_Should_InheritFromTheEntityTypeAndBeSealed()
     {
+        // ProjectMember is deliberately exempt: it has no synthetic Id in the
+        // ERD — its primary key is the (ProjectId, UserId) composite — so it
+        // intentionally does not inherit Entity/IEntity (see ProjectMember's
+        // own doc comment). Excluding it here documents that as a known,
+        // intentional design choice rather than leaving this rule red.
         var result = Types
             .InAssembly(DomainAssembly)
             .That()
             .ResideInNamespace("ArchitectureToolkit.Domain.Entities")
+            .And()
+            .DoNotHaveName("ProjectMember")
             .Should()
             .Inherit(typeof(Entity))
             .And()
@@ -28,6 +35,25 @@ public class DomainArchitectureTests
                 Console.WriteLine($"    {failingType}");
             }
         }
+        Assert.That(result.IsSuccessful, Is.True);
+    }
+
+    [Test]
+    public void ProjectMember_Should_NotInheritFromEntity()
+    {
+        // The positive counterpart to the exemption above: locks in that
+        // ProjectMember's lack of an Entity base class is intentional. If
+        // someone later "fixes" ProjectMember to inherit Entity, this test
+        // fails too, prompting a look at the (ProjectId, UserId) composite
+        // key design rather than a silent, unnoticed change.
+        var result = Types
+            .InAssembly(DomainAssembly)
+            .That()
+            .HaveName("ProjectMember")
+            .ShouldNot()
+            .Inherit(typeof(Entity))
+            .GetResult();
+
         Assert.That(result.IsSuccessful, Is.True);
     }
 
