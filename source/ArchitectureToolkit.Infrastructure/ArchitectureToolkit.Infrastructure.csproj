@@ -11,7 +11,21 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Identity" Version="1.21.0" />
+    <!--
+      ADR-0003: Infrastructure hosts the default self-hosted identity
+      implementation (OpenIddict backed by ASP.NET Core Identity) and
+      registers JwtBearer validation against a configured Authority.
+      ApplicationIdentityDbContext (see Identity/) persists Identity's and
+      OpenIddict's own stores through this same set of packages, entirely
+      within Infrastructure, with zero reference back to Domain,
+      Application, or Persistence.
+    -->
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.11" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <PackageReference Include="OpenIddict.AspNetCore" Version="7.6.0" />
+    <PackageReference Include="OpenIddict.EntityFrameworkCore" Version="7.6.0" />
+    <PackageReference Include="OpenIddict.Validation.SystemNetHttp" Version="7.6.0" />
   </ItemGroup>
 
   <ItemGroup>

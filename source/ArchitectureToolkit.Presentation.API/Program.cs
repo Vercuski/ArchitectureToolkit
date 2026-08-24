@@ -1,6 +1,7 @@
 using ArchitectureToolkit.Application;
 using ArchitectureToolkit.Infrastructure;
 using ArchitectureToolkit.Infrastructure.Exceptions;
+using ArchitectureToolkit.Infrastructure.Identity;
 using ArchitectureToolkit.Persistence;
 using ArchitectureToolkit.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +31,12 @@ if (!app.Environment.IsEnvironment("Testing"))
     using var migrationScope = app.Services.CreateScope();
     var commandDbContext = migrationScope.ServiceProvider.GetRequiredService<CommandDbContext>();
     await commandDbContext.Database.MigrateAsync();
+
+    // ADR-0003 v1.0.2: ApplicationIdentityDbContext tracks its own,
+    // separate migration history (__EFMigrationsHistory_Identity), so it
+    // needs its own MigrateAsync call alongside CommandDbContext's.
+    var identityDbContext = migrationScope.ServiceProvider.GetRequiredService<ApplicationIdentityDbContext>();
+    await identityDbContext.Database.MigrateAsync();
 }
 
 if (!app.Environment.IsProduction())
@@ -40,6 +47,7 @@ if (!app.Environment.IsProduction())
 
 app.UseCorrelationIdMiddleware();
 app.UseExceptionHandler();
+app.UseIdentityAuthentication();
 app.MapControllers();
 app.AddInfrastructureApplicationRegistration();
 app.UseHttpsRedirection();
