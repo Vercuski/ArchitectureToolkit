@@ -39,4 +39,9 @@ RUN dotnet publish "./ArchitectureToolkit.Presentation.API.csproj" -c "$BUILD_CO
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+# ADR-0014: the template library ships in the image so bootstrap seeding
+# needs no separate fetch step. dotnet publish only carries files that are
+# part of the project's own output, so this folder — not referenced by any
+# .csproj — is copied explicitly from the build stage instead.
+COPY --from=build /src/DocumentationTemplates ./DocumentationTemplates
 ENTRYPOINT ["dotnet", "ArchitectureToolkit.Presentation.API.dll"]

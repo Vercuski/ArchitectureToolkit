@@ -4,6 +4,7 @@ using ArchitectureToolkit.Domain.Abstractions;
 using ArchitectureToolkit.Persistence.Contexts;
 using ArchitectureToolkit.Persistence.Options;
 using ArchitectureToolkit.Persistence.Providers;
+using ArchitectureToolkit.Persistence.TemplateLibrary;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -17,6 +18,7 @@ public static class DependencyInjection
     {
         builder.AddOptionsRegistration();
         builder.AddDatabaseProviderRegistration();
+        builder.AddTemplateLibraryRegistration();
         return builder;
     }
 
@@ -24,6 +26,13 @@ public static class DependencyInjection
     {
         builder.Services.Configure<ConnectionStringOptions>(GetSection<ConnectionStringOptions>(builder.Configuration));
         builder.Services.Configure<DatabasePlatformOptions>(GetSection<DatabasePlatformOptions>(builder.Configuration));
+        builder.Services.Configure<TemplateLibraryOptions>(GetSection<TemplateLibraryOptions>(builder.Configuration));
+        return builder;
+    }
+
+    private static IHostApplicationBuilder AddTemplateLibraryRegistration(this IHostApplicationBuilder builder)
+    {
+        builder.Services.AddScoped<ITemplateLibrarySource, FileSystemTemplateLibrarySource>();
         return builder;
     }
 

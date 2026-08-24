@@ -57,6 +57,13 @@ services:
       # CreateDatabaseProvider accepts, since MySQL/MSSQL were removed.
       DatabasePlatform__QueryDbPlatform: PostgreSQL
       DatabasePlatform__CommandDbPlatform: PostgreSQL
+
+      # ADR-0014: absolute path to where the Dockerfile's final stage
+      # copies the bundled template library — see COPY --from=build
+      # /src/DocumentationTemplates in Dockerfile. Local dev uses a
+      # relative default instead (appsettings.json), since there's no
+      # fixed /app WORKDIR outside the container.
+      TemplateLibrary__RootPath: /app/DocumentationTemplates
     ports:
       - "8080:8080"
 
