@@ -5,6 +5,7 @@ using ArchitectureToolkit.Persistence.Contexts;
 using ArchitectureToolkit.Persistence.Options;
 using ArchitectureToolkit.Persistence.Providers;
 using ArchitectureToolkit.Persistence.TemplateLibrary;
+using ArchitectureToolkit.Persistence.UserProvisioning;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -19,6 +20,13 @@ public static class DependencyInjection
         builder.AddOptionsRegistration();
         builder.AddDatabaseProviderRegistration();
         builder.AddTemplateLibraryRegistration();
+        builder.AddUserProvisioningRegistration();
+        return builder;
+    }
+
+    private static IHostApplicationBuilder AddUserProvisioningRegistration(this IHostApplicationBuilder builder)
+    {
+        builder.Services.AddScoped<IUserProvisioningService, UserProvisioningService>();
         return builder;
     }
 
