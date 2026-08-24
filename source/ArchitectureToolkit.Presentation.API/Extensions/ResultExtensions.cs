@@ -1,4 +1,5 @@
 using ArchitectureToolkit.Application.Abstractions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ArchitectureToolkit.Presentation.API.Extensions;
@@ -39,6 +40,12 @@ public static class ResultExtensions
             ResultErrorType.NotFound => controller.NotFound(result.Error),
             ResultErrorType.Validation => controller.BadRequest(result.Error),
             ResultErrorType.Conflict => controller.Conflict(result.Error),
+            // StatusCode, not Forbid(): Forbid() triggers the configured auth
+            // scheme's challenge/forbid handler (for cookie/OIDC-style auth
+            // flows). This is a domain-level authorization failure with a
+            // message body (e.g. "caller is not an architect"), not an
+            // auth-scheme-level challenge.
+            ResultErrorType.Forbidden => controller.StatusCode(StatusCodes.Status403Forbidden, result.Error),
             _ => controller.Problem(result.Error)
         };
     }

@@ -31,12 +31,24 @@ public sealed class User : Entity
     }
 
     /// <summary>
+    /// Sets this user's system role directly. Used by PromoteUserCommand
+    /// (ADR-0009), which can promote or demote a target user to either
+    /// SystemRole — not just grant Architect.
+    /// </summary>
+    public void SetSystemRole(SystemRole newRole)
+    {
+        SystemRole = newRole;
+    }
+
+    /// <summary>
     /// Promotes this user to Architect, granting template-library governance
-    /// rights (ADR-0006). Used by the first-login bootstrap flow (ADR-0009)
-    /// and by PromoteUserCommand for subsequent promotions.
+    /// rights (ADR-0006). Used by the first-login bootstrap flow (ADR-0009).
+    /// A thin wrapper over <see cref="SetSystemRole"/> so the bootstrap
+    /// flow's call site stays a specific, self-documenting method rather
+    /// than every caller needing to know which role bootstrap grants.
     /// </summary>
     public void PromoteToArchitect()
     {
-        SystemRole = SystemRole.Architect;
+        SetSystemRole(SystemRole.Architect);
     }
 }

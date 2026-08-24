@@ -34,11 +34,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="ApplicationTests\" />
-    <Folder Include="PresentationTests\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\ArchitectureToolkit.Application\ArchitectureToolkit.Application.csproj" />
     <ProjectReference Include="..\ArchitectureToolkit.Domain\ArchitectureToolkit.Domain.csproj" />
     <ProjectReference Include="..\ArchitectureToolkit.Infrastructure\ArchitectureToolkit.Infrastructure.csproj" />

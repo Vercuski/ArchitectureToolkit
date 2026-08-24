@@ -1,6 +1,6 @@
 namespace ArchitectureToolkit.Application.Abstractions;
 
-public enum ResultErrorType { NotFound, Validation, Conflict }
+public enum ResultErrorType { NotFound, Validation, Conflict, Forbidden }
 public readonly struct Result<T>
 {
     public bool IsSuccess { get; }

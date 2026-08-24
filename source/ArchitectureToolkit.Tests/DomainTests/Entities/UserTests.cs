@@ -52,4 +52,18 @@ public class UserTests
 
         Assert.That(user.SystemRole, Is.EqualTo(SystemRole.Architect));
     }
+
+    [TestCase(SystemRole.Contributor, SystemRole.Architect)]
+    [TestCase(SystemRole.Architect, SystemRole.Contributor)]
+    public void SetSystemRole_Should_SetToWhicheverRoleIsGiven(SystemRole initialRole, SystemRole newRole)
+    {
+        // Unlike PromoteToArchitect (which only ever grants Architect),
+        // SetSystemRole is the general mechanism PromoteUserCommand uses to
+        // promote OR demote a target user (ADR-0009).
+        var user = new User("Scott Vercuski", "scott@example.com", initialRole);
+
+        user.SetSystemRole(newRole);
+
+        Assert.That(user.SystemRole, Is.EqualTo(newRole));
+    }
 }

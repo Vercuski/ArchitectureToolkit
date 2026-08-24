@@ -21,7 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Actions\" />
     <Folder Include="Contracts\Dtos\" />
     <Folder Include="Contracts\Poco\" />
   </ItemGroup>
