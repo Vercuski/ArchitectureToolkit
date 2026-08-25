@@ -145,11 +145,41 @@ public static class DependencyInjection
 
                 options.RegisterScopes(authConfig.Audience);
 
-                // Development-only ephemeral certs. Production deployments
-                // must supply real signing/encryption certificates — this
-                // is tracked as Phase 4 follow-up work, not yet resolved
-                // by an ADR (see chat notes).
-                if (!builder.Environment.IsProduction())
+                // Development: brand-new ephemeral signing/encryption keys
+                // every process start — fine locally, never for Production
+                // (every previously-issued token, including refresh tokens,
+                // would be invalidated on each restart/redeploy).
+                //
+                // Production: persisted, self-signed certificates loaded
+                // from (or generated once into) a mounted volume, so they
+                // survive restarts. See PersistedCertificateProvisioner and
+                // ADR-0003's follow-up notes.
+                if (builder.Environment.IsProduction())
+                {
+                    var keysDirectory = builder.Configuration["Authentication:KeysDirectory"]
+                        ?? "/app/keys";
+                    var keysPassword = builder.Configuration["Authentication:KeysPassword"]
+                        ?? throw new InvalidOperationException(
+                            "Missing 'Authentication:KeysPassword' configuration. Production " +
+                            "requires a password to protect the persisted OpenIddict " +
+                            "signing/encryption certificates (ADR-0003 follow-up) — " +
+                            "AddDevelopmentSigningCertificate()/AddDevelopmentEncryptionCertificate() " +
+                            "are development-only and are never used outside Development here.");
+
+                    var signingCertificate = PersistedCertificateProvisioner.GetOrCreate(
+                        Path.Combine(keysDirectory, "openiddict-signing.pfx"),
+                        keysPassword,
+                        "ArchitectureToolkit Signing");
+                    var encryptionCertificate = PersistedCertificateProvisioner.GetOrCreate(
+                        Path.Combine(keysDirectory, "openiddict-encryption.pfx"),
+                        keysPassword,
+                        "ArchitectureToolkit Encryption");
+
+                    options
+                        .AddSigningCertificate(signingCertificate)
+                        .AddEncryptionCertificate(encryptionCertificate);
+                }
+                else
                 {
                     options
                         .AddDevelopmentEncryptionCertificate()

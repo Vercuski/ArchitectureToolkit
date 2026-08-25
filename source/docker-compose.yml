@@ -64,8 +64,27 @@ services:
       # relative default instead (appsettings.json), since there's no
       # fixed /app WORKDIR outside the container.
       TemplateLibrary__RootPath: /app/DocumentationTemplates
+
+      # ADR-0003: self-hosted OpenIddict signing/encryption certificates.
+      # Left blank, Authentication__Authority defaults to the zero-config
+      # self-hosted provider; set it to swap in an external OIDC provider
+      # instead (no other change needed here).
+      # KeysPassword protects the persisted certificate files in the
+      # identity-keys volume below and is required in Production —
+      # PersistedCertificateProvisioner throws at startup without it.
+      Authentication__Authority: ""
+      Authentication__KeysDirectory: /app/keys
+      Authentication__KeysPassword: ${AUTH_KEYS_PASSWORD}
+    volumes:
+      # Persists the self-hosted OpenIddict signing/encryption certificates
+      # (PersistedCertificateProvisioner) across restarts/redeploys, so
+      # existing sessions and refresh tokens aren't silently invalidated.
+      # Same rationale as db-data above, just for a different kind of
+      # state that also must not be regenerated on every container start.
+      - identity-keys:/app/keys
     ports:
       - "8080:8080"
 
 volumes:
   db-data:
+  identity-keys:
