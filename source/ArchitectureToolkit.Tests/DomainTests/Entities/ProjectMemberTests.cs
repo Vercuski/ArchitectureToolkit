@@ -14,9 +14,12 @@ public class ProjectMemberTests
 
         var member = new ProjectMember(projectId, userId, ProjectRole.Editor);
 
-        Assert.That(member.ProjectId, Is.EqualTo(projectId));
-        Assert.That(member.UserId, Is.EqualTo(userId));
-        Assert.That(member.Role, Is.EqualTo(ProjectRole.Editor));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(member.ProjectId, Is.EqualTo(projectId));
+            Assert.That(member.UserId, Is.EqualTo(userId));
+            Assert.That(member.Role, Is.EqualTo(ProjectRole.Editor));
+        }
     }
 
     [Test]

@@ -14,12 +14,15 @@ public class TemplateTests
 
         var template = new Template(categoryId, "Architecture Vision");
 
-        Assert.That(template.CategoryId, Is.EqualTo(categoryId));
-        Assert.That(template.Name, Is.EqualTo("Architecture Vision"));
-        Assert.That(template.Id, Is.Not.EqualTo(Guid.Empty));
-        Assert.That(template.CurrentRevisionId, Is.Null);
-        Assert.That(template.CurrentVersion, Is.Null);
-        Assert.That(template.Revisions, Is.Empty);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(template.CategoryId, Is.EqualTo(categoryId));
+            Assert.That(template.Name, Is.EqualTo("Architecture Vision"));
+            Assert.That(template.Id, Is.Not.EqualTo(Guid.Empty));
+            Assert.That(template.CurrentRevisionId, Is.Null);
+            Assert.That(template.CurrentVersion, Is.Null);
+            Assert.That(template.Revisions, Is.Empty);
+        }
     }
 
     [Test]
@@ -44,14 +47,17 @@ public class TemplateTests
 
         var revision = template.CreateRevision(null, null, "initial content", authorId);
 
-        Assert.That(revision.Version, Is.EqualTo(VersionNumber.Initial));
-        Assert.That(revision.TemplateId, Is.EqualTo(template.Id));
-        Assert.That(revision.Content, Is.EqualTo("initial content"));
-        Assert.That(revision.AuthorId, Is.EqualTo(authorId));
-        Assert.That(template.CurrentRevisionId, Is.EqualTo(revision.Id));
-        Assert.That(template.CurrentVersion, Is.EqualTo(VersionNumber.Initial));
-        Assert.That(template.Revisions, Has.Count.EqualTo(1));
-        Assert.That(template.Revisions, Does.Contain(revision));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(revision.Version, Is.EqualTo(VersionNumber.Initial));
+            Assert.That(revision.TemplateId, Is.EqualTo(template.Id));
+            Assert.That(revision.Content, Is.EqualTo("initial content"));
+            Assert.That(revision.AuthorId, Is.EqualTo(authorId));
+            Assert.That(template.CurrentRevisionId, Is.EqualTo(revision.Id));
+            Assert.That(template.CurrentVersion, Is.EqualTo(VersionNumber.Initial));
+            Assert.That(template.Revisions, Has.Count.EqualTo(1));
+            Assert.That(template.Revisions, Does.Contain(revision));
+        }
     }
 
     [Test]
@@ -69,8 +75,11 @@ public class TemplateTests
 
         var revision = template.CreateRevision(null, BumpType.Major, "content", Guid.NewGuid());
 
-        Assert.That(revision.Version, Is.EqualTo(VersionNumber.Initial));
-        Assert.That(revision.BumpType, Is.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(revision.Version, Is.EqualTo(VersionNumber.Initial));
+            Assert.That(revision.BumpType, Is.Null);
+        }
     }
 
     [Test]
@@ -101,10 +110,13 @@ public class TemplateTests
 
         var second = template.CreateRevision(first.Id, BumpType.Minor, "v2", Guid.NewGuid());
 
-        Assert.That(second.Version, Is.EqualTo(new VersionNumber(1, 1, 0)));
-        Assert.That(template.CurrentRevisionId, Is.EqualTo(second.Id));
-        Assert.That(template.CurrentVersion, Is.EqualTo(new VersionNumber(1, 1, 0)));
-        Assert.That(template.Revisions, Has.Count.EqualTo(2));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(second.Version, Is.EqualTo(new VersionNumber(1, 1, 0)));
+            Assert.That(template.CurrentRevisionId, Is.EqualTo(second.Id));
+            Assert.That(template.CurrentVersion, Is.EqualTo(new VersionNumber(1, 1, 0)));
+            Assert.That(template.Revisions, Has.Count.EqualTo(2));
+        }
     }
 
     [Test]

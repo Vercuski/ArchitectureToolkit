@@ -14,8 +14,11 @@ public class RevisionHistoryTests
     {
         var history = new RevisionHistory<FakeRevision>();
 
-        Assert.That(history.CurrentRevisionId, Is.Null);
-        Assert.That(history.CurrentVersion, Is.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(history.CurrentRevisionId, Is.Null);
+            Assert.That(history.CurrentVersion, Is.Null);
+        }
     }
 
     [Test]
@@ -26,8 +29,11 @@ public class RevisionHistoryTests
 
         var history = new RevisionHistory<FakeRevision>(revisionId, version);
 
-        Assert.That(history.CurrentRevisionId, Is.EqualTo(revisionId));
-        Assert.That(history.CurrentVersion, Is.EqualTo(version));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(history.CurrentRevisionId, Is.EqualTo(revisionId));
+            Assert.That(history.CurrentVersion, Is.EqualTo(version));
+        }
     }
 
     [Test]
@@ -59,9 +65,12 @@ public class RevisionHistoryTests
 
         var revision = history.AppendRevision(null, null, "content", authorId, Factory);
 
-        Assert.That(revision.Version, Is.EqualTo(VersionNumber.Initial));
-        Assert.That(history.CurrentVersion, Is.EqualTo(VersionNumber.Initial));
-        Assert.That(history.CurrentRevisionId, Is.EqualTo(revision.Id));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(revision.Version, Is.EqualTo(VersionNumber.Initial));
+            Assert.That(history.CurrentVersion, Is.EqualTo(VersionNumber.Initial));
+            Assert.That(history.CurrentRevisionId, Is.EqualTo(revision.Id));
+        }
     }
 
     [Test]
@@ -79,8 +88,11 @@ public class RevisionHistoryTests
 
         var revision = history.AppendRevision(null, BumpType.Major, "content", Guid.NewGuid(), Factory);
 
-        Assert.That(revision.Version, Is.EqualTo(VersionNumber.Initial));
-        Assert.That(revision.BumpType, Is.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(revision.Version, Is.EqualTo(VersionNumber.Initial));
+            Assert.That(revision.BumpType, Is.Null);
+        }
     }
 
     [Test]
@@ -92,8 +104,11 @@ public class RevisionHistoryTests
         var ex = Assert.Throws<RevisionConflictException>(() =>
             history.AppendRevision(staleExpectedId, null, "content", Guid.NewGuid(), Factory));
 
-        Assert.That(ex!.ExpectedRevisionId, Is.EqualTo(staleExpectedId));
-        Assert.That(ex.ActualRevisionId, Is.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(ex!.ExpectedRevisionId, Is.EqualTo(staleExpectedId));
+            Assert.That(ex.ActualRevisionId, Is.Null);
+        }
     }
 
     [Test]
@@ -120,8 +135,11 @@ public class RevisionHistoryTests
         var revision = history.AppendRevision(
             history.CurrentRevisionId, bumpType, "content", Guid.NewGuid(), Factory);
 
-        Assert.That(revision.Version, Is.EqualTo(new VersionNumber(expectedMajor, expectedMinor, expectedPatch)));
-        Assert.That(revision.BumpType, Is.EqualTo(bumpType));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(revision.Version, Is.EqualTo(new VersionNumber(expectedMajor, expectedMinor, expectedPatch)));
+            Assert.That(revision.BumpType, Is.EqualTo(bumpType));
+        }
     }
 
     [Test]
@@ -134,8 +152,11 @@ public class RevisionHistoryTests
         var ex = Assert.Throws<RevisionConflictException>(() =>
             history.AppendRevision(staleExpectedId, BumpType.Patch, "v2", Guid.NewGuid(), Factory));
 
-        Assert.That(ex!.ExpectedRevisionId, Is.EqualTo(staleExpectedId));
-        Assert.That(ex.ActualRevisionId, Is.EqualTo(first.Id));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(ex!.ExpectedRevisionId, Is.EqualTo(staleExpectedId));
+            Assert.That(ex.ActualRevisionId, Is.EqualTo(first.Id));
+        }
     }
 
     [Test]
@@ -144,12 +165,18 @@ public class RevisionHistoryTests
         var history = new RevisionHistory<FakeRevision>();
 
         var first = history.AppendRevision(null, null, "v1", Guid.NewGuid(), Factory);
-        Assert.That(history.CurrentRevisionId, Is.EqualTo(first.Id));
-        Assert.That(history.CurrentVersion, Is.EqualTo(VersionNumber.Initial));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(history.CurrentRevisionId, Is.EqualTo(first.Id));
+            Assert.That(history.CurrentVersion, Is.EqualTo(VersionNumber.Initial));
+        }
 
         var second = history.AppendRevision(first.Id, BumpType.Minor, "v2", Guid.NewGuid(), Factory);
-        Assert.That(history.CurrentRevisionId, Is.EqualTo(second.Id));
-        Assert.That(history.CurrentVersion, Is.EqualTo(new VersionNumber(1, 1, 0)));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(history.CurrentRevisionId, Is.EqualTo(second.Id));
+            Assert.That(history.CurrentVersion, Is.EqualTo(new VersionNumber(1, 1, 0)));
+        }
     }
 
     [Test]
@@ -160,7 +187,10 @@ public class RevisionHistoryTests
 
         var revision = history.AppendRevision(null, null, "specific content", authorId, Factory);
 
-        Assert.That(revision.Content, Is.EqualTo("specific content"));
-        Assert.That(revision.AuthorId, Is.EqualTo(authorId));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(revision.Content, Is.EqualTo("specific content"));
+            Assert.That(revision.AuthorId, Is.EqualTo(authorId));
+        }
     }
 }

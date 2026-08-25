@@ -10,8 +10,11 @@ public class ProjectTests
     {
         var project = new Project("ArchitectureToolkit Rollout");
 
-        Assert.That(project.Name, Is.EqualTo("ArchitectureToolkit Rollout"));
-        Assert.That(project.Id, Is.Not.EqualTo(Guid.Empty));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(project.Name, Is.EqualTo("ArchitectureToolkit Rollout"));
+            Assert.That(project.Id, Is.Not.EqualTo(Guid.Empty));
+        }
     }
 
     [TestCase(null)]

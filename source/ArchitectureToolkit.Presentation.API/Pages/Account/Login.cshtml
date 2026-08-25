@@ -1,0 +1,40 @@
+@page
+@model ArchitectureToolkit.Presentation.API.Pages.Account.LoginModel
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Sign in — ArchitectureToolkit</title>
+</head>
+<body>
+    <h1>Sign in</h1>
+    <p>
+        Placeholder login screen (ADR-0003 follow-up) — superseded by the
+        Vue SPA once ADR-0005's hosting topology is implemented.
+    </p>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div style="color:red">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <p>@error.ErrorMessage</p>
+            }
+        </div>
+    }
+
+    <form method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
+        <div>
+            <label for="Email">Email</label>
+            <input id="Email" name="Email" type="email" required autocomplete="username" />
+        </div>
+        <div>
+            <label for="Password">Password</label>
+            <input id="Password" name="Password" type="password" required autocomplete="current-password" />
+        </div>
+        <button type="submit">Sign in</button>
+    </form>
+</body>
+</html>

@@ -11,10 +11,13 @@ public class UserTests
     {
         var user = new User("Scott Vercuski", "scott@example.com", SystemRole.Contributor);
 
-        Assert.That(user.Name, Is.EqualTo("Scott Vercuski"));
-        Assert.That(user.Email, Is.EqualTo("scott@example.com"));
-        Assert.That(user.SystemRole, Is.EqualTo(SystemRole.Contributor));
-        Assert.That(user.Id, Is.Not.EqualTo(Guid.Empty));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(user.Name, Is.EqualTo("Scott Vercuski"));
+            Assert.That(user.Email, Is.EqualTo("scott@example.com"));
+            Assert.That(user.SystemRole, Is.EqualTo(SystemRole.Contributor));
+            Assert.That(user.Id, Is.Not.EqualTo(Guid.Empty));
+        }
     }
 
     [TestCase(null)]

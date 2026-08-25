@@ -45,4 +45,41 @@ public sealed class AuthenticationConfiguration
     /// tokens against an external provider.
     /// </summary>
     public bool UseSelfHostedProvider => string.IsNullOrWhiteSpace(Authority);
+
+    /// <summary>
+    /// Redirect URIs the seeded SPA client (<see cref="ClientId"/>) is
+    /// permitted to complete the authorization_code + PKCE flow against.
+    /// Only meaningful for the self-hosted default. Defaults to the Vite
+    /// dev server's standard port, per ADR-0005's local-dev topology
+    /// (SPA and API are same-origin only in the production wwwroot build;
+    /// during development the SPA runs as its own process/origin). A real
+    /// deployment must override this with its actual origin once ADR-0005
+    /// lands and that origin is known.
+    /// </summary>
+    public string[] RedirectUris { get; set; } = ["http://localhost:5173/auth/callback"];
+
+    /// <summary>
+    /// Where the browser is sent after a logout completes. Same
+    /// dev-default caveat as <see cref="RedirectUris"/>.
+    /// </summary>
+    public string[] PostLogoutRedirectUris { get; set; } = ["http://localhost:5173/"];
+
+    /// <summary>
+    /// Optional bootstrap credentials for the very first Identity login.
+    /// With no login UI to self-register through yet (ADR-0003 follow-up)
+    /// and no Identity users seeded any other way, leaving both unset means
+    /// nobody can sign in to the self-hosted provider at all. Only takes
+    /// effect once, when no Identity users exist yet — see
+    /// <c>IdentityBootstrapper</c>. Distinct from ADR-0009's still-open
+    /// question of which *domain* USER gets the Architect role; this only
+    /// creates the underlying Identity-layer login credential that a
+    /// person then authenticates with.
+    /// </summary>
+    public string? SeedAdminEmail { get; set; }
+
+    /// <summary>
+    /// See <see cref="SeedAdminEmail"/>. Must satisfy ASP.NET Core
+    /// Identity's default password policy or seeding fails at startup.
+    /// </summary>
+    public string? SeedAdminPassword { get; set; }
 }

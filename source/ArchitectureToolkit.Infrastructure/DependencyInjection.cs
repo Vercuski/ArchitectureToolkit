@@ -106,6 +106,22 @@ public static class DependencyInjection
             .AddEntityFrameworkStores<ApplicationIdentityDbContext>()
             .AddDefaultTokenProviders();
 
+        // ASP.NET Core Identity's cookie handler heuristically returns a
+        // bare 401 instead of redirecting to LoginPath for requests it
+        // guesses are API/XHR calls. /connect/authorize is always a
+        // top-level browser navigation per the OAuth spec — never fetch/
+        // XHR — so that heuristic is wrong here; force an actual redirect
+        // unconditionally so AuthorizationController.Authorize()'s
+        // Challenge() reaches the login page as intended.
+        builder.Services.ConfigureApplicationCookie(options =>
+        {
+            options.Events.OnRedirectToLogin = context =>
+            {
+                context.Response.Redirect(context.RedirectUri);
+                return Task.CompletedTask;
+            };
+        });
+
         builder.Services.AddAuthorization();
 
         var openIddictBuilder = builder.Services.AddOpenIddict()

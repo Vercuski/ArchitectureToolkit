@@ -5,11 +5,13 @@ using ArchitectureToolkit.Infrastructure.Identity;
 using ArchitectureToolkit.Persistence;
 using ArchitectureToolkit.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddRazorPages();
 builder.Services.AddOpenApi();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.AddApplicationRegistration();
@@ -37,6 +39,15 @@ if (!app.Environment.IsEnvironment("Testing"))
     // needs its own MigrateAsync call alongside CommandDbContext's.
     var identityDbContext = migrationScope.ServiceProvider.GetRequiredService<ApplicationIdentityDbContext>();
     await identityDbContext.Database.MigrateAsync();
+
+    // ADR-0003 follow-up: seeds the SPA's OAuth client and (optionally) a
+    // bootstrap admin login — only meaningful for the self-hosted default;
+    // an external Authority manages its own client registrations.
+    var authConfig = migrationScope.ServiceProvider.GetRequiredService<IOptions<AuthenticationConfiguration>>().Value;
+    if (authConfig.UseSelfHostedProvider)
+    {
+        await IdentityBootstrapper.SeedAsync(migrationScope.ServiceProvider, authConfig);
+    }
 }
 
 if (!app.Environment.IsProduction())
@@ -49,6 +60,7 @@ app.UseCorrelationIdMiddleware();
 app.UseExceptionHandler();
 app.UseIdentityAuthentication();
 app.MapControllers();
+app.MapRazorPages();
 app.AddInfrastructureApplicationRegistration();
 app.UseHttpsRedirection();
 await app.RunAsync();

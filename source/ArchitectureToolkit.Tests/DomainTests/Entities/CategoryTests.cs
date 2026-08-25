@@ -10,9 +10,12 @@ public class CategoryTests
     {
         var category = new Category("02-core-architecture", "Core Architecture");
 
-        Assert.That(category.Code, Is.EqualTo("02-core-architecture"));
-        Assert.That(category.Name, Is.EqualTo("Core Architecture"));
-        Assert.That(category.Id, Is.Not.EqualTo(Guid.Empty));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(category.Code, Is.EqualTo("02-core-architecture"));
+            Assert.That(category.Name, Is.EqualTo("Core Architecture"));
+            Assert.That(category.Id, Is.Not.EqualTo(Guid.Empty));
+        }
     }
 
     [TestCase(null)]

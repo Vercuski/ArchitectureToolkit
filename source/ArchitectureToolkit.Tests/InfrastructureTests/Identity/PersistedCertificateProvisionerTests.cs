@@ -38,9 +38,12 @@ public class PersistedCertificateProvisionerTests
         using var certificate = PersistedCertificateProvisioner.GetOrCreate(
             filePath, "correct horse battery staple", "ArchitectureToolkit Test Signing");
 
-        Assert.That(File.Exists(filePath), Is.True);
-        Assert.That(certificate.Subject, Is.EqualTo("CN=ArchitectureToolkit Test Signing"));
-        Assert.That(certificate.HasPrivateKey, Is.True);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(File.Exists(filePath), Is.True);
+            Assert.That(certificate.Subject, Is.EqualTo("CN=ArchitectureToolkit Test Signing"));
+            Assert.That(certificate.HasPrivateKey, Is.True);
+        }
     }
 
     [Test]

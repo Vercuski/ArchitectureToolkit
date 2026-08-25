@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 
 namespace ArchitectureToolkit.Persistence.TemplateLibrary;
 
-public sealed class FileSystemTemplateLibrarySource : ITemplateLibrarySource
+public sealed class FileSystemTemplateLibrarySource(IOptions<TemplateLibraryOptions> options) : ITemplateLibrarySource
 {
     // The 12 category folders this library is known to define, per
     // DocumentationTemplates/README.md's own index. A folder found on disk
@@ -26,12 +26,7 @@ public sealed class FileSystemTemplateLibrarySource : ITemplateLibrarySource
         ["11-handover"] = "Handover",
     };
 
-    private readonly string _rootPath;
-
-    public FileSystemTemplateLibrarySource(IOptions<TemplateLibraryOptions> options)
-    {
-        _rootPath = Path.GetFullPath(options.Value.RootPath);
-    }
+    private readonly string _rootPath = Path.GetFullPath(options.Value.RootPath);
 
     public async Task<IReadOnlyCollection<TemplateLibraryCategory>> GetCategoriesAsync(
         CancellationToken cancellationToken = default)

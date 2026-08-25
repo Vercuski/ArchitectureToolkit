@@ -15,11 +15,14 @@ public class UserIdentityTests
 
         var after = DateTime.UtcNow;
 
-        Assert.That(identity.UserId, Is.EqualTo(userId));
-        Assert.That(identity.Issuer, Is.EqualTo("https://accounts.google.com"));
-        Assert.That(identity.ExternalSubjectId, Is.EqualTo("subject-123"));
-        Assert.That(identity.ProviderLabel, Is.EqualTo("Google"));
-        Assert.That(identity.LinkedAt, Is.InRange(before, after));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(identity.UserId, Is.EqualTo(userId));
+            Assert.That(identity.Issuer, Is.EqualTo("https://accounts.google.com"));
+            Assert.That(identity.ExternalSubjectId, Is.EqualTo("subject-123"));
+            Assert.That(identity.ProviderLabel, Is.EqualTo("Google"));
+            Assert.That(identity.LinkedAt, Is.InRange(before, after));
+        }
     }
 
     [Test]

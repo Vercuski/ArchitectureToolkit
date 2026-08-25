@@ -57,8 +57,11 @@ public class FileSystemTemplateLibrarySourceTests
         var category = categories.Single(c => c.Code == "00-vision-and-strategy");
         Assert.That(category.Name, Is.EqualTo("Vision & Strategy"));
         var template = category.Templates.Single();
-        Assert.That(template.Name, Is.EqualTo("Architecture Vision"));
-        Assert.That(template.Content, Does.Contain("# Body"));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(template.Name, Is.EqualTo("Architecture Vision"));
+            Assert.That(template.Content, Does.Contain("# Body"));
+        }
     }
 
     [Test]
@@ -86,7 +89,7 @@ public class FileSystemTemplateLibrarySourceTests
 
         var category = categories.Single(c => c.Code == "02-core-architecture");
         Assert.That(category.Templates, Has.Count.EqualTo(2));
-        Assert.That(category.Templates.Select(t => t.Name), Is.EquivalentTo(new[] { "Domain Model", "Context Diagram" }));
+        Assert.That(category.Templates.Select(t => t.Name), Is.EquivalentTo(["Domain Model", "Context Diagram"]));
     }
 
     [Test]
@@ -143,11 +146,14 @@ public class FileSystemTemplateLibrarySourceTests
 
         var categories = await source.GetCategoriesAsync();
 
-        Assert.That(categories, Has.Count.EqualTo(12));
-        Assert.That(categories.Sum(c => c.Templates.Count), Is.EqualTo(50));
-        Assert.That(categories.All(c => c.Templates.All(t => !string.IsNullOrWhiteSpace(t.Name))), Is.True);
-        Assert.That(categories.Select(c => c.Code), Does.Contain("00-vision-and-strategy"));
-        Assert.That(categories.Select(c => c.Code), Does.Contain("11-handover"));
-        Assert.That(categories.Single(c => c.Code == "00-vision-and-strategy").Name, Is.EqualTo("Vision & Strategy"));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(categories, Has.Count.EqualTo(12));
+            Assert.That(categories.Sum(c => c.Templates.Count), Is.EqualTo(50));
+            Assert.That(categories.All(c => c.Templates.All(t => !string.IsNullOrWhiteSpace(t.Name))), Is.True);
+            Assert.That(categories.Select(c => c.Code), Does.Contain("00-vision-and-strategy"));
+            Assert.That(categories.Select(c => c.Code), Does.Contain("11-handover"));
+            Assert.That(categories.Single(c => c.Code == "00-vision-and-strategy").Name, Is.EqualTo("Vision & Strategy"));
+        }
     }
 }

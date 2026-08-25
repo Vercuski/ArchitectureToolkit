@@ -10,10 +10,13 @@ public class AuthenticationConfigurationTests
     {
         var config = new AuthenticationConfiguration();
 
-        Assert.That(config.Authority, Is.Null);
-        Assert.That(config.UseSelfHostedProvider, Is.True);
-        Assert.That(config.ClientId, Is.EqualTo("architecturetoolkit-spa"));
-        Assert.That(config.Audience, Is.EqualTo("architecturetoolkit-api"));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(config.Authority, Is.Null);
+            Assert.That(config.UseSelfHostedProvider, Is.True);
+            Assert.That(config.ClientId, Is.EqualTo("architecturetoolkit-spa"));
+            Assert.That(config.Audience, Is.EqualTo("architecturetoolkit-api"));
+        }
     }
 
     [TestCase(null)]

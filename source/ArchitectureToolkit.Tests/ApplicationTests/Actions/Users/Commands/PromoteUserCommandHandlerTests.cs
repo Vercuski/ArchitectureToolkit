@@ -51,8 +51,11 @@ public class PromoteUserCommandHandlerTests
         var result = await CreateHandler().Handle(
             new PromoteUserCommand(Guid.NewGuid(), target.Id, SystemRole.Architect), CancellationToken.None);
 
-        Assert.That(result.IsSuccess, Is.False);
-        Assert.That(result.ErrorType, Is.EqualTo(ResultErrorType.NotFound));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.IsSuccess, Is.False);
+            Assert.That(result.ErrorType, Is.EqualTo(ResultErrorType.NotFound));
+        }
     }
 
     [Test]
@@ -65,8 +68,11 @@ public class PromoteUserCommandHandlerTests
         var result = await CreateHandler().Handle(
             new PromoteUserCommand(caller.Id, target.Id, SystemRole.Architect), CancellationToken.None);
 
-        Assert.That(result.IsSuccess, Is.False);
-        Assert.That(result.ErrorType, Is.EqualTo(ResultErrorType.Forbidden));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.IsSuccess, Is.False);
+            Assert.That(result.ErrorType, Is.EqualTo(ResultErrorType.Forbidden));
+        }
         A.CallTo(() => _commandDbContext.Alter(A<User>._)).MustNotHaveHappened();
     }
 
@@ -79,8 +85,11 @@ public class PromoteUserCommandHandlerTests
         var result = await CreateHandler().Handle(
             new PromoteUserCommand(caller.Id, Guid.NewGuid(), SystemRole.Architect), CancellationToken.None);
 
-        Assert.That(result.IsSuccess, Is.False);
-        Assert.That(result.ErrorType, Is.EqualTo(ResultErrorType.NotFound));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.IsSuccess, Is.False);
+            Assert.That(result.ErrorType, Is.EqualTo(ResultErrorType.NotFound));
+        }
     }
 
     [Test]
@@ -93,9 +102,12 @@ public class PromoteUserCommandHandlerTests
         var result = await CreateHandler().Handle(
             new PromoteUserCommand(caller.Id, target.Id, SystemRole.Architect), CancellationToken.None);
 
-        Assert.That(result.IsSuccess, Is.True);
-        Assert.That(result.Value, Is.EqualTo(SystemRole.Architect));
-        Assert.That(target.SystemRole, Is.EqualTo(SystemRole.Architect));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(result.Value, Is.EqualTo(SystemRole.Architect));
+            Assert.That(target.SystemRole, Is.EqualTo(SystemRole.Architect));
+        }
         A.CallTo(() => _commandDbContext.Alter(target)).MustHaveHappenedOnceExactly();
         A.CallTo(() => _unitOfWork.SaveChangesAsync(A<CancellationToken>._)).MustHaveHappenedOnceExactly();
     }
@@ -110,8 +122,11 @@ public class PromoteUserCommandHandlerTests
         var result = await CreateHandler().Handle(
             new PromoteUserCommand(caller.Id, target.Id, SystemRole.Contributor), CancellationToken.None);
 
-        Assert.That(result.IsSuccess, Is.True);
-        Assert.That(target.SystemRole, Is.EqualTo(SystemRole.Contributor));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(target.SystemRole, Is.EqualTo(SystemRole.Contributor));
+        }
         A.CallTo(() => _commandDbContext.Alter(target)).MustHaveHappenedOnceExactly();
     }
 
@@ -124,9 +139,12 @@ public class PromoteUserCommandHandlerTests
         var result = await CreateHandler().Handle(
             new PromoteUserCommand(caller.Id, caller.Id, SystemRole.Contributor), CancellationToken.None);
 
-        Assert.That(result.IsSuccess, Is.False);
-        Assert.That(result.ErrorType, Is.EqualTo(ResultErrorType.Conflict));
-        Assert.That(caller.SystemRole, Is.EqualTo(SystemRole.Architect));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.IsSuccess, Is.False);
+            Assert.That(result.ErrorType, Is.EqualTo(ResultErrorType.Conflict));
+            Assert.That(caller.SystemRole, Is.EqualTo(SystemRole.Architect));
+        }
         A.CallTo(() => _commandDbContext.Alter(A<User>._)).MustNotHaveHappened();
         A.CallTo(() => _unitOfWork.SaveChangesAsync(A<CancellationToken>._)).MustNotHaveHappened();
     }
@@ -141,7 +159,10 @@ public class PromoteUserCommandHandlerTests
         var result = await CreateHandler().Handle(
             new PromoteUserCommand(caller.Id, target.Id, SystemRole.Contributor), CancellationToken.None);
 
-        Assert.That(result.IsSuccess, Is.True);
-        Assert.That(result.Value, Is.EqualTo(SystemRole.Contributor));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(result.Value, Is.EqualTo(SystemRole.Contributor));
+        }
     }
 }

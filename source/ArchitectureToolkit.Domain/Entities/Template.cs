@@ -19,7 +19,7 @@ public sealed class Template : Entity
     public Guid? CurrentRevisionId { get; private set; }
     public VersionNumber? CurrentVersion { get; private set; }
 
-    private readonly List<TemplateRevision> _revisions = new();
+    private readonly List<TemplateRevision> _revisions = [];
     public IReadOnlyCollection<TemplateRevision> Revisions => _revisions.AsReadOnly();
 
     public Template(Guid categoryId, string name)

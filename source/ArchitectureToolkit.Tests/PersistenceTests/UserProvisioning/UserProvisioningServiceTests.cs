@@ -27,7 +27,7 @@ public class UserProvisioningServiceTests
 
         A.CallTo(() => _unitOfWork.BeginTransactionAsync(A<CancellationToken>._)).Returns(_transaction);
         A.CallTo(() => _templateLibrarySource.GetCategoriesAsync(A<CancellationToken>._))
-            .Returns(Array.Empty<TemplateLibraryCategory>());
+            .Returns([]);
     }
 
     [TearDown]
@@ -94,8 +94,11 @@ public class UserProvisioningServiceTests
 
         var result = await CreateService().ResolveOrProvisionUserAsync(CreatePrincipal(subject: null));
 
-        Assert.That(result.IsSuccess, Is.False);
-        Assert.That(result.ErrorType, Is.EqualTo(ResultErrorType.Validation));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.IsSuccess, Is.False);
+            Assert.That(result.ErrorType, Is.EqualTo(ResultErrorType.Validation));
+        }
     }
 
     [Test]
@@ -105,8 +108,11 @@ public class UserProvisioningServiceTests
 
         var result = await CreateService().ResolveOrProvisionUserAsync(CreatePrincipal(issuer: null));
 
-        Assert.That(result.IsSuccess, Is.False);
-        Assert.That(result.ErrorType, Is.EqualTo(ResultErrorType.Validation));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.IsSuccess, Is.False);
+            Assert.That(result.ErrorType, Is.EqualTo(ResultErrorType.Validation));
+        }
     }
 
     [Test]
@@ -119,8 +125,11 @@ public class UserProvisioningServiceTests
 
         var result = await CreateService().ResolveOrProvisionUserAsync(CreatePrincipal());
 
-        Assert.That(result.IsSuccess, Is.True);
-        Assert.That(result.Value, Is.EqualTo(existingUser));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(result.Value, Is.EqualTo(existingUser));
+        }
         A.CallTo(() => _unitOfWork.BeginTransactionAsync(A<CancellationToken>._)).MustNotHaveHappened();
         A.CallTo(() => _commandDbContext.Insert(A<User>._)).MustNotHaveHappened();
     }
@@ -134,8 +143,11 @@ public class UserProvisioningServiceTests
 
         var result = await CreateService().ResolveOrProvisionUserAsync(CreatePrincipal());
 
-        Assert.That(result.IsSuccess, Is.False);
-        Assert.That(result.ErrorType, Is.EqualTo(ResultErrorType.NotFound));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.IsSuccess, Is.False);
+            Assert.That(result.ErrorType, Is.EqualTo(ResultErrorType.NotFound));
+        }
     }
 
     [Test]
@@ -145,8 +157,11 @@ public class UserProvisioningServiceTests
 
         var result = await CreateService().ResolveOrProvisionUserAsync(CreatePrincipal(name: null));
 
-        Assert.That(result.IsSuccess, Is.False);
-        Assert.That(result.ErrorType, Is.EqualTo(ResultErrorType.Validation));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.IsSuccess, Is.False);
+            Assert.That(result.ErrorType, Is.EqualTo(ResultErrorType.Validation));
+        }
     }
 
     [Test]
@@ -156,8 +171,11 @@ public class UserProvisioningServiceTests
 
         var result = await CreateService().ResolveOrProvisionUserAsync(CreatePrincipal(email: null));
 
-        Assert.That(result.IsSuccess, Is.False);
-        Assert.That(result.ErrorType, Is.EqualTo(ResultErrorType.Validation));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.IsSuccess, Is.False);
+            Assert.That(result.ErrorType, Is.EqualTo(ResultErrorType.Validation));
+        }
     }
 
     [Test]
@@ -168,8 +186,11 @@ public class UserProvisioningServiceTests
 
         var result = await CreateService().ResolveOrProvisionUserAsync(CreatePrincipal());
 
-        Assert.That(result.IsSuccess, Is.True);
-        Assert.That(result.Value!.SystemRole, Is.EqualTo(SystemRole.Contributor));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(result.Value!.SystemRole, Is.EqualTo(SystemRole.Contributor));
+        }
         A.CallTo(() => _templateLibrarySource.GetCategoriesAsync(A<CancellationToken>._)).MustNotHaveHappened();
         A.CallTo(() => _transaction.CommitAsync(A<CancellationToken>._)).MustHaveHappenedOnceExactly();
     }
@@ -181,8 +202,11 @@ public class UserProvisioningServiceTests
 
         var result = await CreateService().ResolveOrProvisionUserAsync(CreatePrincipal());
 
-        Assert.That(result.IsSuccess, Is.True);
-        Assert.That(result.Value!.SystemRole, Is.EqualTo(SystemRole.Architect));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(result.Value!.SystemRole, Is.EqualTo(SystemRole.Architect));
+        }
         A.CallTo(() => _commandDbContext.Insert(A<User>._)).MustHaveHappenedOnceExactly();
         A.CallTo(() => _commandDbContext.Insert(A<UserIdentity>._)).MustHaveHappenedOnceExactly();
         A.CallTo(() => _transaction.CommitAsync(A<CancellationToken>._)).MustHaveHappenedOnceExactly();
@@ -196,8 +220,11 @@ public class UserProvisioningServiceTests
 
         var result = await CreateService().ResolveOrProvisionUserAsync(CreatePrincipal());
 
-        Assert.That(result.IsSuccess, Is.True);
-        Assert.That(result.Value!.SystemRole, Is.EqualTo(SystemRole.Architect));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(result.Value!.SystemRole, Is.EqualTo(SystemRole.Architect));
+        }
         A.CallTo(() => _templateLibrarySource.GetCategoriesAsync(A<CancellationToken>._)).MustNotHaveHappened();
     }
 
@@ -230,19 +257,26 @@ public class UserProvisioningServiceTests
         var newUser = result.Value!;
 
         Assert.That(insertedCategories, Has.Count.EqualTo(2));
-        Assert.That(insertedCategories.Select(c => c.Code),
-            Is.EquivalentTo(new[] { "00-vision-and-strategy", "11-handover" }));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(insertedCategories.Select(c => c.Code),
+                    Is.EquivalentTo(["00-vision-and-strategy", "11-handover"]));
 
-        Assert.That(insertedTemplates, Has.Count.EqualTo(3));
-        Assert.That(insertedTemplates.Select(t => t.Name),
-            Is.EquivalentTo(new[] { "Architecture Vision", "Business Case", "As-Built Documentation" }));
+            Assert.That(insertedTemplates, Has.Count.EqualTo(3));
+        }
 
-        // Every seeded template's first revision is authored by the new
-        // user, seeded at 1.0.0 — per ADR-0014, "no sentinel or system
-        // user is introduced."
-        Assert.That(insertedTemplates, Has.All.Matches<Template>(t =>
-            t.Revisions.Single().AuthorId == newUser.Id
-            && t.Revisions.Single().Version.Equals(VersionNumber.Initial)));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(insertedTemplates.Select(t => t.Name),
+                    Is.EquivalentTo(["Architecture Vision", "Business Case", "As-Built Documentation"]));
+
+            // Every seeded template's first revision is authored by the new
+            // user, seeded at 1.0.0 — per ADR-0014, "no sentinel or system
+            // user is introduced."
+            Assert.That(insertedTemplates, Has.All.Matches<Template>(t =>
+                t.Revisions.Single().AuthorId == newUser.Id
+                && t.Revisions.Single().Version.Equals(VersionNumber.Initial)));
+        }
 
         A.CallTo(() => _transaction.CommitAsync(A<CancellationToken>._)).MustHaveHappenedOnceExactly();
     }

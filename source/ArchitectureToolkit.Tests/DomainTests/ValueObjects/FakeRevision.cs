@@ -12,20 +12,11 @@ namespace ArchitectureToolkit.Tests.DomainTests.ValueObjects;
 /// this project. This mirrors ADR-0007's own stated intent that RevisionHistory{T}
 /// be testable without depending on either real aggregate.
 /// </summary>
-internal sealed class FakeRevision : IRevision
+internal sealed class FakeRevision(VersionNumber version, BumpType? bumpType, string content, Guid authorId) : IRevision
 {
-    public Guid Id { get; }
-    public VersionNumber Version { get; }
-    public BumpType? BumpType { get; }
-    public string Content { get; }
-    public Guid AuthorId { get; }
-
-    public FakeRevision(VersionNumber version, BumpType? bumpType, string content, Guid authorId)
-    {
-        Id = Guid.NewGuid();
-        Version = version;
-        BumpType = bumpType;
-        Content = content;
-        AuthorId = authorId;
-    }
+    public Guid Id { get; } = Guid.NewGuid();
+    public VersionNumber Version { get; } = version;
+    public BumpType? BumpType { get; } = bumpType;
+    public string Content { get; } = content;
+    public Guid AuthorId { get; } = authorId;
 }

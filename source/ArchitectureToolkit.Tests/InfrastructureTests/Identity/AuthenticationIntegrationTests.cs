@@ -30,8 +30,11 @@ public class AuthenticationIntegrationTests
         var response = await client.GetAsync("/.well-known/openid-configuration");
         var body = await response.Content.ReadAsStringAsync();
 
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-        Assert.That(body, Does.Contain("architecturetoolkit-api"));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(body, Does.Contain("architecturetoolkit-api"));
+        }
         Assert.That(body, Does.Contain("authorization_code"));
     }
 

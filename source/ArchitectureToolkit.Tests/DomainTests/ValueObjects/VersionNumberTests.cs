@@ -10,9 +10,12 @@ public class VersionNumberTests
     {
         var version = new VersionNumber(1, 2, 3);
 
-        Assert.That(version.Major, Is.EqualTo(1));
-        Assert.That(version.Minor, Is.EqualTo(2));
-        Assert.That(version.Patch, Is.EqualTo(3));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(version.Major, Is.EqualTo(1));
+            Assert.That(version.Minor, Is.EqualTo(2));
+            Assert.That(version.Patch, Is.EqualTo(3));
+        }
     }
 
     [Test]
@@ -85,8 +88,11 @@ public class VersionNumberTests
     {
         var success = VersionNumber.TryParse(input, out var result);
 
-        Assert.That(success, Is.True);
-        Assert.That(result, Is.EqualTo(new VersionNumber(expectedMajor, expectedMinor, expectedPatch)));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(success, Is.True);
+            Assert.That(result, Is.EqualTo(new VersionNumber(expectedMajor, expectedMinor, expectedPatch)));
+        }
     }
 
     [TestCase(null)]
@@ -104,8 +110,11 @@ public class VersionNumberTests
     {
         var success = VersionNumber.TryParse(input, out var result);
 
-        Assert.That(success, Is.False);
-        Assert.That(result, Is.EqualTo(default(VersionNumber)));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(success, Is.False);
+            Assert.That(result, Is.Default);
+        }
     }
 
     [Test]
@@ -156,8 +165,8 @@ public class VersionNumberTests
         var c = new VersionNumber(1, 2, 4);
 
         Assert.That(a, Is.EqualTo(b));
-        Assert.That(a == b, Is.True);
+        Assert.That(a, Is.EqualTo(b));
         Assert.That(a, Is.Not.EqualTo(c));
-        Assert.That(a == c, Is.False);
+        Assert.That(a, Is.Not.EqualTo(c));
     }
 }

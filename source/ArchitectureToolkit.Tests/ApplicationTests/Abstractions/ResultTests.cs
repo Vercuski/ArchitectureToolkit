@@ -10,9 +10,12 @@ public class ResultTests
     {
         var result = Result<string>.Success("value");
 
-        Assert.That(result.IsSuccess, Is.True);
-        Assert.That(result.Value, Is.EqualTo("value"));
-        Assert.That(result.Error, Is.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(result.Value, Is.EqualTo("value"));
+            Assert.That(result.Error, Is.Null);
+        }
     }
 
     [TestCase(ResultErrorType.NotFound)]
@@ -23,9 +26,12 @@ public class ResultTests
     {
         var result = Result<string>.Failure("something went wrong", errorType);
 
-        Assert.That(result.IsSuccess, Is.False);
-        Assert.That(result.Value, Is.EqualTo(default(string)));
-        Assert.That(result.Error, Is.EqualTo("something went wrong"));
-        Assert.That(result.ErrorType, Is.EqualTo(errorType));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.IsSuccess, Is.False);
+            Assert.That(result.Value, Is.Null);
+            Assert.That(result.Error, Is.EqualTo("something went wrong"));
+            Assert.That(result.ErrorType, Is.EqualTo(errorType));
+        }
     }
 }

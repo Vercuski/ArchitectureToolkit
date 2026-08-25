@@ -71,8 +71,11 @@ public class ResultExtensionsTests
 
         var objectResult = actionResult as ObjectResult;
         Assert.That(objectResult, Is.Not.Null);
-        Assert.That(objectResult!.StatusCode, Is.EqualTo(403));
-        Assert.That(objectResult.Value, Is.EqualTo("caller is not an architect"));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(objectResult!.StatusCode, Is.EqualTo(403));
+            Assert.That(objectResult.Value, Is.EqualTo("caller is not an architect"));
+        }
     }
 
     [Test]

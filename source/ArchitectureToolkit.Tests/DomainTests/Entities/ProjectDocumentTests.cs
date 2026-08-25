@@ -15,13 +15,16 @@ public class ProjectDocumentTests
 
         var document = new ProjectDocument(projectId, categoryId, "Architecture Vision");
 
-        Assert.That(document.ProjectId, Is.EqualTo(projectId));
-        Assert.That(document.CategoryId, Is.EqualTo(categoryId));
-        Assert.That(document.Title, Is.EqualTo("Architecture Vision"));
-        Assert.That(document.SourceTemplateRevisionId, Is.Null);
-        Assert.That(document.CurrentRevisionId, Is.Null);
-        Assert.That(document.CurrentVersion, Is.Null);
-        Assert.That(document.Revisions, Is.Empty);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(document.ProjectId, Is.EqualTo(projectId));
+            Assert.That(document.CategoryId, Is.EqualTo(categoryId));
+            Assert.That(document.Title, Is.EqualTo("Architecture Vision"));
+            Assert.That(document.SourceTemplateRevisionId, Is.Null);
+            Assert.That(document.CurrentRevisionId, Is.Null);
+            Assert.That(document.CurrentVersion, Is.Null);
+            Assert.That(document.Revisions, Is.Empty);
+        }
     }
 
     [Test]
@@ -62,14 +65,17 @@ public class ProjectDocumentTests
 
         var revision = document.CreateRevision(null, null, "initial content", authorId);
 
-        Assert.That(revision.Version, Is.EqualTo(VersionNumber.Initial));
-        Assert.That(revision.DocumentId, Is.EqualTo(document.Id));
-        Assert.That(revision.Content, Is.EqualTo("initial content"));
-        Assert.That(revision.AuthorId, Is.EqualTo(authorId));
-        Assert.That(document.CurrentRevisionId, Is.EqualTo(revision.Id));
-        Assert.That(document.CurrentVersion, Is.EqualTo(VersionNumber.Initial));
-        Assert.That(document.Revisions, Has.Count.EqualTo(1));
-        Assert.That(document.Revisions, Does.Contain(revision));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(revision.Version, Is.EqualTo(VersionNumber.Initial));
+            Assert.That(revision.DocumentId, Is.EqualTo(document.Id));
+            Assert.That(revision.Content, Is.EqualTo("initial content"));
+            Assert.That(revision.AuthorId, Is.EqualTo(authorId));
+            Assert.That(document.CurrentRevisionId, Is.EqualTo(revision.Id));
+            Assert.That(document.CurrentVersion, Is.EqualTo(VersionNumber.Initial));
+            Assert.That(document.Revisions, Has.Count.EqualTo(1));
+            Assert.That(document.Revisions, Does.Contain(revision));
+        }
     }
 
     [Test]
@@ -83,8 +89,11 @@ public class ProjectDocumentTests
 
         var revision = document.CreateRevision(null, BumpType.Major, "content", Guid.NewGuid());
 
-        Assert.That(revision.Version, Is.EqualTo(VersionNumber.Initial));
-        Assert.That(revision.BumpType, Is.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(revision.Version, Is.EqualTo(VersionNumber.Initial));
+            Assert.That(revision.BumpType, Is.Null);
+        }
     }
 
     [Test]
@@ -115,9 +124,12 @@ public class ProjectDocumentTests
 
         var second = document.CreateRevision(first.Id, BumpType.Patch, "v2", Guid.NewGuid());
 
-        Assert.That(second.Version, Is.EqualTo(new VersionNumber(1, 0, 1)));
-        Assert.That(document.CurrentRevisionId, Is.EqualTo(second.Id));
-        Assert.That(document.Revisions, Has.Count.EqualTo(2));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(second.Version, Is.EqualTo(new VersionNumber(1, 0, 1)));
+            Assert.That(document.CurrentRevisionId, Is.EqualTo(second.Id));
+            Assert.That(document.Revisions, Has.Count.EqualTo(2));
+        }
     }
 
     [Test]

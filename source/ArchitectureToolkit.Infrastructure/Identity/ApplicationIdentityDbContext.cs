@@ -24,13 +24,8 @@ namespace ArchitectureToolkit.Infrastructure.Identity;
 /// IUserProvisioningService's job (Persistence), regardless of whether the
 /// token came from this local provider or an external one.
 /// </summary>
-public sealed class ApplicationIdentityDbContext : IdentityDbContext<IdentityUser>
+public sealed class ApplicationIdentityDbContext(DbContextOptions<ApplicationIdentityDbContext> options) : IdentityDbContext<IdentityUser>(options)
 {
-    public ApplicationIdentityDbContext(DbContextOptions<ApplicationIdentityDbContext> options)
-        : base(options)
-    {
-    }
-
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
