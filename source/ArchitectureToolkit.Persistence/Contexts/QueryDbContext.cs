@@ -15,13 +15,13 @@ public sealed class QueryDbContext(DbContextOptions<QueryDbContext> options)
     }
 
     public Task<List<TEntity>> ToListAsync<TEntity>(IQueryable<TEntity> query, CancellationToken cancellationToken = default)
-    where TEntity : Entity
+    where TEntity : class, IPersistable
     {
         return query.ToListAsync(cancellationToken);
     }
 
     public Task<TEntity?> SingleOrDefaultAsync<TEntity>(IQueryable<TEntity> query, CancellationToken cancellationToken = default)
-        where TEntity : Entity
+        where TEntity : class, IPersistable
     {
         return query.SingleOrDefaultAsync(cancellationToken);
     }

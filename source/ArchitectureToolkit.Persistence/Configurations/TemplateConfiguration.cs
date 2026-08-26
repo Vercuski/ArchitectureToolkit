@@ -25,17 +25,27 @@ public sealed class TemplateConfiguration : IEntityTypeConfiguration<Template>
             .HasConversion<NullableVersionNumberConverter>()
             .HasMaxLength(32);
 
-        // Restrict, not Cascade: the one-to-many Template -> TemplateRevision
-        // relationship below already cascades revision deletes via
-        // TemplateId. A second cascading path through CurrentRevisionId
-        // would create multiple cascade paths to the same TemplateRevision
-        // row, which EF Core rejects at model-build time. IsRequired(false)
-        // because a brand-new Template has no revisions yet.
-        builder.HasOne<TemplateRevision>()
-            .WithMany()
-            .HasForeignKey(t => t.CurrentRevisionId)
-            .OnDelete(DeleteBehavior.Restrict)
-            .IsRequired(false);
+        // Deliberately NOT configured as a database-enforced foreign key
+        // (just a plain column) despite pointing at TEMPLATE_REVISION.Id.
+        // CurrentRevisionId is an application-maintained "latest revision"
+        // pointer whose validity RevisionHistory<T> already guarantees by
+        // construction — it's set exactly once, atomically, alongside the
+        // revision it points to. A real FK here creates a genuine circular
+        // relationship with TemplateRevision.TemplateId (which IS a real,
+        // necessary FK for referential integrity on the actual ownership
+        // relationship): a brand-new Template and its first
+        // TemplateRevision can never both be saved together, since each
+        // would need the other's row to already exist first. Confirmed via
+        // live testing that this isn't just a client-side EF Core ordering
+        // quirk fixable by splitting SaveChanges calls — this scalar-only
+        // FK (no matching navigation property on either side) isn't
+        // reliably discovered by EF Core's graph-based save ordering even
+        // across separate SaveChanges calls, producing a real PostgreSQL
+        // 23503 violation instead. Removing the DB-level constraint
+        // removes the false ordering requirement entirely, with no loss
+        // of real integrity — TemplateRevision.TemplateId remains fully
+        // enforced below.
+        builder.Property(t => t.CurrentRevisionId);
 
         // Optimistic concurrency at the database level, on top of the
         // in-memory check in RevisionHistory<T> — see Domain Data Model.md §3

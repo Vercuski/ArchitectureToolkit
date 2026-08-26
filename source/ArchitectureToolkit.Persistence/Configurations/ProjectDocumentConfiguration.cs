@@ -44,14 +44,18 @@ public sealed class ProjectDocumentConfiguration : IEntityTypeConfiguration<Proj
             .HasConversion<NullableVersionNumberConverter>()
             .HasMaxLength(32);
 
-        // Restrict, not Cascade — same circular-FK reasoning as Template:
-        // the one-to-many ProjectDocument -> DocumentRevision relationship
-        // below already cascades revision deletes via DocumentId.
-        builder.HasOne<DocumentRevision>()
-            .WithMany()
-            .HasForeignKey(pd => pd.CurrentRevisionId)
-            .OnDelete(DeleteBehavior.Restrict)
-            .IsRequired(false);
+        // Deliberately NOT a database-enforced foreign key — same
+        // reasoning as TemplateConfiguration's CurrentRevisionId: this is
+        // an application-maintained pointer whose validity RevisionHistory<T>
+        // already guarantees by construction, not a relationship needing
+        // DB-level integrity, and enforcing it as a real FK creates an
+        // unresolvable circular relationship with the necessary
+        // DocumentRevision.DocumentId FK. Confirmed live: Template's
+        // identical configuration produced a real PostgreSQL 23503
+        // violation on its first revision, not just a client-side EF Core
+        // ordering quirk — the same fix applies here before this entity's
+        // first revision is ever created.
+        builder.Property(pd => pd.CurrentRevisionId);
 
         // UseXminAsConcurrencyToken() was removed in Npgsql.EntityFrameworkCore.PostgreSQL 7.0.
         // This is the confirmed replacement -- the deprecated method's own internal

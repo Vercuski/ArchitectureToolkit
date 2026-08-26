@@ -45,4 +45,8 @@
     <AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ApplicationTests\Actions\Projects\" />
+  </ItemGroup>
+
 </Project>

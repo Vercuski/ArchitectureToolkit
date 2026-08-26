@@ -127,6 +127,13 @@ public sealed class UserProvisioningService(
     /// (seeded at 1.0.0 — RevisionHistory{T} enforces this regardless of
     /// bumpType on a first revision, per ADR-0013) per file, all authored
     /// by the newly-bootstrapped architect. No sentinel/system user.
+    ///
+    /// A single pass is safe here: TemplateConfiguration deliberately does
+    /// not configure Template.CurrentRevisionId as a database-enforced
+    /// foreign key (see that configuration's own comment) specifically so
+    /// a brand-new Template and its first TemplateRevision can be inserted
+    /// together in one SaveChanges call without EF Core seeing a circular
+    /// dependency between them.
     /// </summary>
     private async Task SeedTemplateLibraryAsync(Guid authorId, CancellationToken cancellationToken)
     {

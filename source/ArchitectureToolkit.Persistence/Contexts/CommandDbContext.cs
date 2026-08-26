@@ -11,22 +11,22 @@ namespace ArchitectureToolkit.Persistence.Contexts;
 public sealed class CommandDbContext(DbContextOptions<CommandDbContext> options)
     : BaseDbContext<CommandDbContext>(options), ICommandDbContext, IUnitOfWork
 {
-    public void Insert<TEntity>(TEntity entity) where TEntity : Entity
+    public void Insert<TEntity>(TEntity entity) where TEntity : class, IPersistable
     {
         Set<TEntity>().Add(entity);
     }
 
-    public void InsertRange<TEntity>(IReadOnlyCollection<TEntity> entities) where TEntity : Entity
+    public void InsertRange<TEntity>(IReadOnlyCollection<TEntity> entities) where TEntity : class, IPersistable
     {
         Set<TEntity>().AddRange(entities);
     }
 
-    public void Alter<TEntity>(TEntity entity) where TEntity : Entity
+    public void Alter<TEntity>(TEntity entity) where TEntity : class, IPersistable
     {
         Set<TEntity>().Update(entity);
     }
 
-    public void Delete<TEntity>(TEntity entity) where TEntity : Entity
+    public void Delete<TEntity>(TEntity entity) where TEntity : class, IPersistable
     {
         Set<TEntity>().Remove(entity);
     }
