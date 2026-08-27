@@ -83,4 +83,32 @@ public sealed class ProjectDocumentsController(IMediator mediator, IUserProvisio
         return ToActionResult(result, revision =>
             CreatedAtAction(nameof(GetProjectDocument), new { id }, revision));
     }
+
+    [HttpGet("~/api/documents/{id:guid}/revisions")]
+    public async Task<IActionResult> ListDocumentRevisions(Guid id, CancellationToken cancellationToken)
+    {
+        var callerUserId = await ResolveCallerUserIdAsync(cancellationToken);
+        if (callerUserId is null)
+        {
+            return Unauthorized();
+        }
+
+        var result = await mediator.Send(new ListDocumentRevisionsQuery(callerUserId.Value, id), cancellationToken);
+        return ToActionResult(result);
+    }
+
+    [HttpGet("~/api/documents/{id:guid}/revisions/{revisionId:guid}")]
+    public async Task<IActionResult> GetDocumentRevision(
+        Guid id, Guid revisionId, CancellationToken cancellationToken)
+    {
+        var callerUserId = await ResolveCallerUserIdAsync(cancellationToken);
+        if (callerUserId is null)
+        {
+            return Unauthorized();
+        }
+
+        var result = await mediator.Send(
+            new GetDocumentRevisionQuery(callerUserId.Value, id, revisionId), cancellationToken);
+        return ToActionResult(result);
+    }
 }

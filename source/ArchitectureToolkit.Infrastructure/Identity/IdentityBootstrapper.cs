@@ -6,13 +6,20 @@ using static OpenIddict.Abstractions.OpenIddictConstants;
 namespace ArchitectureToolkit.Infrastructure.Identity;
 
 /// <summary>
-/// Seeds the two things the self-hosted OpenIddict provider needs to be
+/// Seeds the three things the self-hosted OpenIddict provider needs to be
 /// usable at all on a fresh install, run once at startup alongside the
 /// EF Core migrations (see Program.cs):
 ///
 /// 1. The SPA's OAuth client (an OpenIddict "Application") — without this,
 ///    /connect/authorize rejects every request with "unknown client".
-/// 2. An optional bootstrap admin Identity login
+/// 2. The standard OIDC scopes the SPA requests. Unlike a custom
+///    resource-audience scope (architecturetoolkit-api, validated purely
+///    against the client's own Permissions), OpenIddict requires
+///    well-known OIDC scopes like "email" to exist as a registered
+///    OpenIddictScope entity — without this, /connect/authorize rejects
+///    the request outright with "invalid scopes were specified: email",
+///    even though the client already has permission to request it.
+/// 3. An optional bootstrap admin Identity login
 ///    (<see cref="AuthenticationConfiguration.SeedAdminEmail"/>/
 ///    <see cref="AuthenticationConfiguration.SeedAdminPassword"/>) —
 ///    without this, and with no self-registration UI built yet (ADR-0003
@@ -28,8 +35,19 @@ public static class IdentityBootstrapper
 {
     public static async Task SeedAsync(IServiceProvider services, AuthenticationConfiguration config)
     {
+        await SeedScopesAsync(services);
         await SeedOAuthClientAsync(services, config);
         await SeedAdminLoginAsync(services, config);
+    }
+
+    private static async Task SeedScopesAsync(IServiceProvider services)
+    {
+        var scopeManager = services.GetRequiredService<IOpenIddictScopeManager>();
+
+        if (await scopeManager.FindByNameAsync(Scopes.Email) is null)
+        {
+            await scopeManager.CreateAsync(new OpenIddictScopeDescriptor { Name = Scopes.Email });
+        }
     }
 
     private static async Task SeedOAuthClientAsync(IServiceProvider services, AuthenticationConfiguration config)
@@ -64,10 +82,12 @@ public static class IdentityBootstrapper
 
         descriptor.Permissions.Add(Permissions.Endpoints.Authorization);
         descriptor.Permissions.Add(Permissions.Endpoints.Token);
+        descriptor.Permissions.Add(Permissions.Endpoints.EndSession);
         descriptor.Permissions.Add(Permissions.GrantTypes.AuthorizationCode);
         descriptor.Permissions.Add(Permissions.GrantTypes.RefreshToken);
         descriptor.Permissions.Add(Permissions.ResponseTypes.Code);
         descriptor.Permissions.Add(Permissions.Prefixes.Scope + Scopes.OpenId);
+        descriptor.Permissions.Add(Permissions.Prefixes.Scope + Scopes.Email);
         descriptor.Permissions.Add(Permissions.Prefixes.Scope + Scopes.OfflineAccess);
         descriptor.Permissions.Add(Permissions.Prefixes.Scope + config.Audience);
 

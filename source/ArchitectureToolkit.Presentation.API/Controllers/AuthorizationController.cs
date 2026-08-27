@@ -117,6 +117,22 @@ public sealed class AuthorizationController(
     }
 
     /// <summary>
+    /// RP-initiated logout (OpenID Connect Session Management). Ends the
+    /// local Identity cookie session, then hands off to OpenIddict's own
+    /// SignOut handling, which validates the request's
+    /// post_logout_redirect_uri against the client's registered
+    /// PostLogoutRedirectUris and redirects the browser there — this
+    /// controller doesn't need to read or validate that URI itself.
+    /// </summary>
+    [HttpGet("~/connect/logout")]
+    [HttpPost("~/connect/logout")]
+    public async Task<IActionResult> Logout()
+    {
+        await signInManager.SignOutAsync();
+        return SignOut(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+    }
+
+    /// <summary>
     /// Standard OpenIddict claim-destination mapping: everything goes into
     /// the access token (so the API can read it); name/email additionally
     /// go into the ID token only when the corresponding scope was granted,

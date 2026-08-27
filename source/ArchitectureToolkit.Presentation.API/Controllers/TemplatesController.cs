@@ -73,4 +73,30 @@ public sealed class TemplatesController(IMediator mediator, IUserProvisioningSer
         return ToActionResult(result, revision =>
             CreatedAtAction(nameof(GetTemplate), new { id }, revision));
     }
+
+    [HttpGet("{id:guid}/revisions")]
+    public async Task<IActionResult> ListTemplateRevisions(Guid id, CancellationToken cancellationToken)
+    {
+        var callerUserId = await ResolveCallerUserIdAsync(cancellationToken);
+        if (callerUserId is null)
+        {
+            return Unauthorized();
+        }
+
+        var result = await mediator.Send(new ListTemplateRevisionsQuery(id), cancellationToken);
+        return ToActionResult(result);
+    }
+
+    [HttpGet("{id:guid}/revisions/{revisionId:guid}")]
+    public async Task<IActionResult> GetTemplateRevision(Guid id, Guid revisionId, CancellationToken cancellationToken)
+    {
+        var callerUserId = await ResolveCallerUserIdAsync(cancellationToken);
+        if (callerUserId is null)
+        {
+            return Unauthorized();
+        }
+
+        var result = await mediator.Send(new GetTemplateRevisionQuery(id, revisionId), cancellationToken);
+        return ToActionResult(result);
+    }
 }

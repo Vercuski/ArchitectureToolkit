@@ -152,7 +152,8 @@ public static class DependencyInjection
                 options
                     .SetAuthorizationEndpointUris("connect/authorize")
                     .SetTokenEndpointUris("connect/token")
-                    .SetUserInfoEndpointUris("connect/userinfo");
+                    .SetUserInfoEndpointUris("connect/userinfo")
+                    .SetEndSessionEndpointUris("connect/logout");
 
                 options
                     .AllowAuthorizationCodeFlow()
@@ -206,7 +207,8 @@ public static class DependencyInjection
                     .UseAspNetCore()
                     .EnableAuthorizationEndpointPassthrough()
                     .EnableTokenEndpointPassthrough()
-                    .EnableUserInfoEndpointPassthrough();
+                    .EnableUserInfoEndpointPassthrough()
+                    .EnableEndSessionEndpointPassthrough();
 
                 // Dev-only: lets the server answer over plain HTTP for local
                 // testing without a TLS cert. Production always terminates
