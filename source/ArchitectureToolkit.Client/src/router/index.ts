@@ -3,6 +3,8 @@ import HomeView from '../views/HomeView.vue'
 import CallbackView from '../views/CallbackView.vue'
 import ProjectListView from '../views/ProjectListView.vue'
 import ProjectDetailView from '../views/ProjectDetailView.vue'
+import TemplateListView from '../views/TemplateListView.vue'
+import TemplateDetailView from '../views/TemplateDetailView.vue'
 import { useAuthStore } from '@/stores/auth'
 
 declare module 'vue-router' {
@@ -30,6 +32,18 @@ const router = createRouter({
       path: '/projects/:id',
       name: 'project-detail',
       component: ProjectDetailView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/templates',
+      name: 'templates',
+      component: TemplateListView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/templates/:id',
+      name: 'template-detail',
+      component: TemplateDetailView,
       meta: { requiresAuth: true },
     },
     {

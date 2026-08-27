@@ -17,6 +17,8 @@
   },
   "dependencies": {
     "@mdi/font": "^7.4.47",
+    "dompurify": "^3.4.14",
+    "marked": "^18.0.11",
     "oidc-client-ts": "^3.5.0",
     "pinia": "^4.0.3",
     "vue": "^3.5.40",
@@ -25,6 +27,7 @@
   },
   "devDependencies": {
     "@tsconfig/node24": "^24.0.4",
+    "@types/dompurify": "^3.0.5",
     "@types/jsdom": "^28.0.3",
     "@types/node": "^24.13.3",
     "@vitejs/plugin-vue": "^6.0.8",

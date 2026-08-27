@@ -24,3 +24,46 @@ export interface UserDto {
   email: string
   systemRole: string
 }
+
+// Mirrors ArchitectureToolkit.Application.Contracts.Categories.CategoryDto
+export interface CategoryDto {
+  id: string
+  code: string
+  name: string
+}
+
+// Mirrors ArchitectureToolkit.Domain.ValueObjects.BumpType
+export type BumpType = 'Major' | 'Minor' | 'Patch'
+
+// Mirrors ArchitectureToolkit.Application.Contracts.Templates.TemplateSummaryDto
+export interface TemplateSummaryDto {
+  id: string
+  categoryId: string
+  name: string
+  currentVersion: string
+}
+
+// Mirrors ArchitectureToolkit.Application.Contracts.Templates.TemplateDetailDto
+export interface TemplateDetailDto {
+  id: string
+  categoryId: string
+  name: string
+  currentVersion: string
+  currentRevisionId: string
+  content: string
+}
+
+// Mirrors ArchitectureToolkit.Application.Contracts.Templates.TemplateRevisionDto
+export interface TemplateRevisionDto {
+  id: string
+  templateId: string
+  version: string
+  bumpType: BumpType | null
+  authorId: string
+  createdAt: string
+}
+
+// Mirrors ArchitectureToolkit.Application.Contracts.Templates.TemplateRevisionDetailDto
+export interface TemplateRevisionDetailDto extends TemplateRevisionDto {
+  content: string
+}

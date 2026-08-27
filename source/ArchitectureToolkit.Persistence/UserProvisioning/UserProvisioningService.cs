@@ -76,12 +76,49 @@ public sealed class UserProvisioningService(
         var providerLabel = ExtractProviderLabel(principal, issuer);
 
         // ADR-0009: the first-user check happens in the same transaction as
-        // the insert, to narrow (not fully eliminate) the check-then-act
-        // race window between two people logging in at the same instant on
-        // a still-empty install.
+        // the insert, to narrow the check-then-act race window between two
+        // requests resolving the same still-unprovisioned identity at the
+        // same instant. Narrowing alone isn't enough in practice — a single
+        // SPA page firing more than one concurrent request on first load
+        // (completely normal; e.g. Promise.all-ing two independent API
+        // calls) reliably hits this exact window on a fresh install's very
+        // first login, since neither concurrent request has committed yet
+        // when the other runs its own "does this identity exist" check.
+        // pg_advisory_xact_lock serializes provisioning attempts globally:
+        // the fixed key means only one such transaction proceeds past this
+        // point at a time, and it's auto-released at commit/rollback, so it
+        // needs no explicit unlock. Cheap in practice — every call after an
+        // identity's first-ever provisioning takes the fast existingIdentity
+        // path above and never reaches this lock at all.
         await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);
         try
         {
+            await commandDbContext.ExecuteSqlAsync(
+                "SELECT pg_advisory_xact_lock(408361265);", [], cancellationToken);
+
+            // Re-check now that the lock is held: another transaction may
+            // have committed this exact identity while this one was
+            // waiting for the lock above.
+            var recheckIdentityQuery = queryDbContext.Set<UserIdentity>()
+                .Where(i => i.Issuer == issuer && i.ExternalSubjectId == externalSubjectId);
+            var recheckIdentity = await queryDbContext.SingleOrDefaultAsync(recheckIdentityQuery, cancellationToken);
+
+            if (recheckIdentity is not null)
+            {
+                var recheckUserQuery = queryDbContext.Set<User>().Where(u => u.Id == recheckIdentity.UserId);
+                var recheckUser = await queryDbContext.SingleOrDefaultAsync(recheckUserQuery, cancellationToken);
+
+                if (recheckUser is null)
+                {
+                    return Result<User>.Failure(
+                        $"USER_IDENTITY '{recheckIdentity.Id}' references a missing USER '{recheckIdentity.UserId}'.",
+                        ResultErrorType.NotFound);
+                }
+
+                await transaction.CommitAsync(cancellationToken);
+                return Result<User>.Success(recheckUser);
+            }
+
             var anyUserQuery = queryDbContext.Set<User>();
             var isFirstUser = (await queryDbContext.ToListAsync(anyUserQuery, cancellationToken)).Count == 0;
             var systemRole = isFirstUser ? SystemRole.Architect : SystemRole.Contributor;
