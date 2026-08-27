@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
+import { RouterView, RouterLink } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
@@ -8,7 +8,10 @@ const authStore = useAuthStore()
 <template>
   <v-app>
     <v-app-bar>
-      <v-app-bar-title>ArchitectureToolkit</v-app-bar-title>
+      <v-app-bar-title>
+        <RouterLink to="/" class="text-white text-decoration-none">ArchitectureToolkit</RouterLink>
+      </v-app-bar-title>
+      <v-btn v-if="authStore.isAuthenticated" to="/projects" variant="text">Projects</v-btn>
       <v-spacer />
       <v-btn v-if="authStore.isAuthenticated" @click="authStore.logout()">Sign out</v-btn>
     </v-app-bar>

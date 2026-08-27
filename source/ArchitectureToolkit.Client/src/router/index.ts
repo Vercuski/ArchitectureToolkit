@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import CallbackView from '../views/CallbackView.vue'
+import ProjectListView from '../views/ProjectListView.vue'
+import ProjectDetailView from '../views/ProjectDetailView.vue'
 import { useAuthStore } from '@/stores/auth'
 
 declare module 'vue-router' {
@@ -16,6 +18,18 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/projects',
+      name: 'projects',
+      component: ProjectListView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/projects/:id',
+      name: 'project-detail',
+      component: ProjectDetailView,
       meta: { requiresAuth: true },
     },
     {
