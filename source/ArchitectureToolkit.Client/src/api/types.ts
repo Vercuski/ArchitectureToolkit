@@ -67,3 +67,39 @@ export interface TemplateRevisionDto {
 export interface TemplateRevisionDetailDto extends TemplateRevisionDto {
   content: string
 }
+
+// Mirrors ArchitectureToolkit.Application.Contracts.ProjectDocuments.ProjectDocumentSummaryDto
+export interface ProjectDocumentSummaryDto {
+  id: string
+  projectId: string
+  categoryId: string
+  title: string
+  currentVersion: string
+}
+
+// Mirrors ArchitectureToolkit.Application.Contracts.ProjectDocuments.ProjectDocumentDetailDto
+export interface ProjectDocumentDetailDto {
+  id: string
+  projectId: string
+  categoryId: string
+  title: string
+  currentVersion: string
+  currentRevisionId: string
+  sourceTemplateRevisionId: string | null
+  content: string
+}
+
+// Mirrors ArchitectureToolkit.Application.Contracts.ProjectDocuments.DocumentRevisionDto
+export interface DocumentRevisionDto {
+  id: string
+  documentId: string
+  version: string
+  bumpType: BumpType | null
+  authorId: string
+  createdAt: string
+}
+
+// Mirrors ArchitectureToolkit.Application.Contracts.ProjectDocuments.DocumentRevisionDetailDto
+export interface DocumentRevisionDetailDto extends DocumentRevisionDto {
+  content: string
+}

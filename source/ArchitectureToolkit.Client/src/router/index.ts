@@ -5,6 +5,7 @@ import ProjectListView from '../views/ProjectListView.vue'
 import ProjectDetailView from '../views/ProjectDetailView.vue'
 import TemplateListView from '../views/TemplateListView.vue'
 import TemplateDetailView from '../views/TemplateDetailView.vue'
+import DocumentDetailView from '../views/DocumentDetailView.vue'
 import { useAuthStore } from '@/stores/auth'
 
 declare module 'vue-router' {
@@ -44,6 +45,16 @@ const router = createRouter({
       path: '/templates/:id',
       name: 'template-detail',
       component: TemplateDetailView,
+      meta: { requiresAuth: true },
+    },
+    {
+      // Not nested under /projects/:id — ProjectDocument has its own
+      // global identity (~/api/documents/{id} on the backend), and the
+      // document's own projectId (from ProjectDocumentDetailDto) is the
+      // single source of truth for "which project," not the URL too.
+      path: '/documents/:id',
+      name: 'document-detail',
+      component: DocumentDetailView,
       meta: { requiresAuth: true },
     },
     {
