@@ -54,10 +54,7 @@ public static class IdentityBootstrapper
     {
         var applicationManager = services.GetRequiredService<IOpenIddictApplicationManager>();
 
-        if (await applicationManager.FindByClientIdAsync(config.ClientId) is not null)
-        {
-            return;
-        }
+        var existingApplication = await applicationManager.FindByClientIdAsync(config.ClientId);
 
         var descriptor = new OpenIddictApplicationDescriptor
         {
@@ -93,7 +90,23 @@ public static class IdentityBootstrapper
 
         descriptor.Requirements.Add(Requirements.Features.ProofKeyForCodeExchange);
 
-        await applicationManager.CreateAsync(descriptor);
+        // Reconciling, not create-once: without this, any future change to
+        // the permission/redirect-URI set above would silently never apply
+        // to an already-seeded install, exactly as happened here —
+        // Permissions.Prefixes.Scope + config.Audience was added to this
+        // descriptor after this project's local database already had an
+        // architecturetoolkit-spa row from an earlier iteration, and the
+        // old "if exists, return" guard meant that row's permissions never
+        // caught up, so OpenIddict rejected the architecturetoolkit-api
+        // scope as one the (stale) client wasn't permitted to request.
+        if (existingApplication is null)
+        {
+            await applicationManager.CreateAsync(descriptor);
+        }
+        else
+        {
+            await applicationManager.UpdateAsync(existingApplication, descriptor);
+        }
     }
 
     private static async Task SeedAdminLoginAsync(IServiceProvider services, AuthenticationConfiguration config)
