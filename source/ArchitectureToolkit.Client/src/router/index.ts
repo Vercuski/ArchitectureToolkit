@@ -68,7 +68,9 @@ router.beforeEach(async (to) => {
     // Redirects the browser away entirely (signinRedirect never resolves
     // to a router destination), so the boolean return value here is only
     // to satisfy the guard's type — navigation never actually completes.
-    await authStore.login()
+    // to.fullPath is carried through login() so CallbackView can send the
+    // user back to the page they actually asked for, not just '/'.
+    await authStore.login(to.fullPath)
     return false
   }
 

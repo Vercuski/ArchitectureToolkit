@@ -25,14 +25,26 @@ export const useAuthStore = defineStore('auth', () => {
     })
   }
 
-  /** Redirects the browser to /connect/authorize — never returns. */
-  async function login() {
-    await userManager.signinRedirect()
+  /**
+   * Redirects the browser to /connect/authorize — never returns.
+   * `returnUrl` round-trips through oidc-client-ts's own `state` handling
+   * (not a query param we control), so the router guard's deep link
+   * survives the OIDC redirect without the backend needing to know about it.
+   */
+  async function login(returnUrl?: string) {
+    await userManager.signinRedirect(returnUrl ? { state: { returnUrl } } : undefined)
   }
 
-  /** Called from CallbackView once /auth/callback receives the redirect back. */
-  async function completeLogin() {
-    user.value = await userManager.signinRedirectCallback()
+  /**
+   * Called from CallbackView once /auth/callback receives the redirect
+   * back. Returns where the caller should navigate next: the original
+   * deep link if `login` was given one, otherwise '/'.
+   */
+  async function completeLogin(): Promise<string> {
+    const loadedUser = await userManager.signinRedirectCallback()
+    user.value = loadedUser
+    const state = loadedUser.state as { returnUrl?: string } | undefined
+    return state?.returnUrl ?? '/'
   }
 
   /** Redirects the browser to end the session at the provider too. */

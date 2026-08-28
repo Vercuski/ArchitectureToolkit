@@ -69,10 +69,22 @@ async function createRevision() {
     reviseDialogOpen.value = false
     await load()
   } catch (err) {
-    reviseError.value =
-      err instanceof ApiError
-        ? ((err.body as { error?: string })?.error ?? 'Failed to create revision.')
-        : 'Failed to create revision.'
+    if (err instanceof ApiError && err.status === 409) {
+      // Someone else saved a revision after this template was loaded, so
+      // template.currentRevisionId is now stale — retrying with the same
+      // value would just conflict again. Refresh it, but leave newContent
+      // and the open dialog alone: the user wrote real content here, and
+      // silently discarding it would be worse than the conflict itself.
+      await load()
+      reviseError.value =
+        'Someone else saved a new revision of this template while you were editing. ' +
+        'Review the latest content behind this dialog, then Save again to reapply your changes.'
+    } else {
+      reviseError.value =
+        err instanceof ApiError
+          ? ((err.body as { error?: string })?.error ?? 'Failed to create revision.')
+          : 'Failed to create revision.'
+    }
   } finally {
     revising.value = false
   }

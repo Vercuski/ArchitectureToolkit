@@ -9,8 +9,8 @@ const error = ref<string | null>(null)
 
 onMounted(async () => {
   try {
-    await authStore.completeLogin()
-    await router.push('/')
+    const returnUrl = await authStore.completeLogin()
+    await router.push(returnUrl)
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Sign-in failed.'
   }
