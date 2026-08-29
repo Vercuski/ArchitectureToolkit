@@ -274,7 +274,7 @@ onMounted(load)
                   variant="underlined"
                   style="max-width: 140px"
                   :disabled="rowBusy === member.userId"
-                  @update:model-value="(value) => changeRole(member, value as ProjectRole)"
+                  @update:model-value="(value: unknown) => changeRole(member, value as ProjectRole)"
                 />
                 <span v-else>{{ member.role }}</span>
               </td>

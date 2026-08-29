@@ -1,0 +1,377 @@
+diff --git a/source/ArchitectureToolkit.Client/src/api/__tests__/httpClient.spec.ts b/source/ArchitectureToolkit.Client/src/api/__tests__/httpClient.spec.ts
+new file mode 100644
+index 0000000..528b139
+--- /dev/null
++++ b/source/ArchitectureToolkit.Client/src/api/__tests__/httpClient.spec.ts
+@@ -0,0 +1,108 @@
++import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
++
++const getUserMock = vi.fn()
++
++vi.mock('@/auth/oidcConfig', () => ({
++  userManager: {
++    getUser: getUserMock,
++  },
++}))
++
++// Imported after the mock above so httpClient picks up the mocked userManager.
++const { httpClient, ApiError } = await import('../httpClient')
++
++function jsonResponse(body: unknown, init: ResponseInit = {}) {
++  return new Response(JSON.stringify(body), {
++    status: 200,
++    headers: { 'content-type': 'application/json' },
++    ...init,
++  })
++}
++
++function headersFromLastCall(callIndex = 0) {
++  const call = vi.mocked(fetch).mock.calls[callIndex]
++  return new Headers(call?.[1]?.headers)
++}
++
++describe('httpClient', () => {
++  beforeEach(() => {
++    getUserMock.mockReset()
++    vi.stubGlobal('fetch', vi.fn())
++  })
++
++  afterEach(() => {
++    vi.unstubAllGlobals()
++  })
++
++  it('attaches a bearer token when a signed-in user has an access token', async () => {
++    getUserMock.mockResolvedValue({ access_token: 'token-123' })
++    vi.mocked(fetch).mockResolvedValue(jsonResponse({ ok: true }))
++
++    await httpClient.get('/api/projects')
++
++    expect(headersFromLastCall().get('Authorization')).toBe('Bearer token-123')
++  })
++
++  it('omits the Authorization header when there is no signed-in user', async () => {
++    getUserMock.mockResolvedValue(null)
++    vi.mocked(fetch).mockResolvedValue(jsonResponse({ ok: true }))
++
++    await httpClient.get('/api/projects')
++
++    expect(headersFromLastCall().has('Authorization')).toBe(false)
++  })
++
++  it('sets Content-Type only when a request body is present', async () => {
++    getUserMock.mockResolvedValue(null)
++    // A fresh Response per call — reusing one Response across two request()
++    // calls would fail on the second .json() read (bodies are single-use).
++    vi.mocked(fetch).mockImplementation(async () => jsonResponse({}))
++
++    await httpClient.get('/api/projects')
++    expect(headersFromLastCall(0).has('Content-Type')).toBe(false)
++
++    await httpClient.post('/api/projects', { name: 'Test' })
++    expect(headersFromLastCall(1).get('Content-Type')).toBe('application/json')
++  })
++
++  it('returns undefined for a 204 No Content response', async () => {
++    getUserMock.mockResolvedValue(null)
++    vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 204 }))
++
++    const result = await httpClient.delete('/api/projects/1')
++
++    expect(result).toBeUndefined()
++  })
++
++  it('parses and returns a JSON body on success', async () => {
++    getUserMock.mockResolvedValue(null)
++    vi.mocked(fetch).mockResolvedValue(jsonResponse({ id: '1', name: 'Test' }))
++
++    const result = await httpClient.get<{ id: string; name: string }>('/api/projects/1')
++
++    expect(result).toEqual({ id: '1', name: 'Test' })
++  })
++
++  it('throws an ApiError carrying the status and parsed body on a non-ok response', async () => {
++    getUserMock.mockResolvedValue(null)
++    vi.mocked(fetch).mockResolvedValue(jsonResponse({ error: 'Conflict' }, { status: 409 }))
++
++    const failure = httpClient.post('/api/documents/1/revisions', {})
++
++    await expect(failure).rejects.toBeInstanceOf(ApiError)
++    await expect(failure.catch((e) => e)).resolves.toMatchObject({
++      status: 409,
++      body: { error: 'Conflict' },
++    })
++  })
++
++  it('does not attempt to parse a non-JSON error body', async () => {
++    getUserMock.mockResolvedValue(null)
++    vi.mocked(fetch).mockResolvedValue(new Response('Internal Server Error', { status: 500 }))
++
++    await expect(httpClient.get('/api/projects').catch((e) => e)).resolves.toMatchObject({
++      status: 500,
++      body: undefined,
++    })
++  })
++})
+diff --git a/source/ArchitectureToolkit.Client/src/router/__tests__/index.spec.ts b/source/ArchitectureToolkit.Client/src/router/__tests__/index.spec.ts
+new file mode 100644
+index 0000000..af94c97
+--- /dev/null
++++ b/source/ArchitectureToolkit.Client/src/router/__tests__/index.spec.ts
+@@ -0,0 +1,76 @@
++import { createPinia, setActivePinia } from 'pinia'
++import { beforeEach, describe, expect, it, vi } from 'vitest'
++import type { User } from 'oidc-client-ts'
++
++vi.mock('@/auth/oidcConfig', () => ({
++  userManager: {
++    getUser: vi.fn().mockResolvedValue(null),
++    signinRedirect: vi.fn().mockResolvedValue(undefined),
++    signinRedirectCallback: vi.fn(),
++    signoutRedirect: vi.fn(),
++    events: { addUserLoaded: vi.fn(), addUserUnloaded: vi.fn() },
++  },
++}))
++
++// Stubbed out so importing router/index.ts doesn't drag the real Vuetify
++// component tree (and its CSS) into this guard-only test — the guard
++// itself is what's under test here, not any individual view's rendering.
++const stubComponent = { render: () => null }
++vi.mock('../../views/HomeView.vue', () => ({ default: stubComponent }))
++vi.mock('../../views/CallbackView.vue', () => ({ default: stubComponent }))
++vi.mock('../../views/ProjectListView.vue', () => ({ default: stubComponent }))
++vi.mock('../../views/ProjectDetailView.vue', () => ({ default: stubComponent }))
++vi.mock('../../views/TemplateListView.vue', () => ({ default: stubComponent }))
++vi.mock('../../views/TemplateDetailView.vue', () => ({ default: stubComponent }))
++vi.mock('../../views/DocumentDetailView.vue', () => ({ default: stubComponent }))
++
++// Imported after the mock above, and in this order: the auth store first so
++// the spied instance below is the same one router/index.ts's guard resolves
++// via useAuthStore() (both go through the same active Pinia).
++const { useAuthStore } = await import('@/stores/auth')
++const { default: router } = await import('../index')
++
++function signIn(authStore: ReturnType<typeof useAuthStore>) {
++  // isAuthenticated is derived from `user` — set it directly rather than
++  // exercising oidc-client-ts's session-loading path, which
++  // stores/auth.spec.ts already covers on its own.
++  authStore.user = { access_token: 'token-123', expired: false } as User
++}
++
++describe('router auth guard', () => {
++  beforeEach(async () => {
++    setActivePinia(createPinia())
++    await router.replace('/')
++  })
++
++  it('blocks navigation to a protected route and redirects to login when signed out', async () => {
++    const authStore = useAuthStore()
++    const loginSpy = vi.spyOn(authStore, 'login').mockResolvedValue(undefined)
++
++    await router.push('/templates/abc')
++
++    expect(loginSpy).toHaveBeenCalledWith('/templates/abc')
++    expect(router.currentRoute.value.fullPath).not.toBe('/templates/abc')
++  })
++
++  it('allows navigation to a protected route when signed in', async () => {
++    const authStore = useAuthStore()
++    signIn(authStore)
++    const loginSpy = vi.spyOn(authStore, 'login')
++
++    await router.push('/templates/abc')
++
++    expect(loginSpy).not.toHaveBeenCalled()
++    expect(router.currentRoute.value.fullPath).toBe('/templates/abc')
++  })
++
++  it('allows navigation to the auth callback route regardless of auth state', async () => {
++    const authStore = useAuthStore()
++    const loginSpy = vi.spyOn(authStore, 'login')
++
++    await router.push('/auth/callback')
++
++    expect(loginSpy).not.toHaveBeenCalled()
++    expect(router.currentRoute.value.fullPath).toBe('/auth/callback')
++  })
++})
+diff --git a/source/ArchitectureToolkit.Client/src/stores/__tests__/auth.spec.ts b/source/ArchitectureToolkit.Client/src/stores/__tests__/auth.spec.ts
+new file mode 100644
+index 0000000..4b5f69d
+--- /dev/null
++++ b/source/ArchitectureToolkit.Client/src/stores/__tests__/auth.spec.ts
+@@ -0,0 +1,162 @@
++import { createPinia, setActivePinia } from 'pinia'
++import { beforeEach, describe, expect, it, vi } from 'vitest'
++import type { User } from 'oidc-client-ts'
++
++const getUserMock = vi.fn()
++const signinRedirectMock = vi.fn()
++const signinRedirectCallbackMock = vi.fn()
++const signoutRedirectMock = vi.fn()
++const addUserLoadedMock = vi.fn()
++const addUserUnloadedMock = vi.fn()
++
++vi.mock('@/auth/oidcConfig', () => ({
++  userManager: {
++    getUser: getUserMock,
++    signinRedirect: signinRedirectMock,
++    signinRedirectCallback: signinRedirectCallbackMock,
++    signoutRedirect: signoutRedirectMock,
++    events: {
++      addUserLoaded: addUserLoadedMock,
++      addUserUnloaded: addUserUnloadedMock,
++    },
++  },
++}))
++
++// Imported after the mock above so the store picks up the mocked userManager.
++const { useAuthStore } = await import('../auth')
++
++function fakeUser(overrides: Partial<User> = {}): User {
++  return {
++    access_token: 'token-123',
++    expired: false,
++    state: undefined,
++    profile: {},
++    ...overrides,
++  } as User
++}
++
++describe('useAuthStore', () => {
++  beforeEach(() => {
++    setActivePinia(createPinia())
++    getUserMock.mockReset().mockResolvedValue(null)
++    signinRedirectMock.mockReset().mockResolvedValue(undefined)
++    signinRedirectCallbackMock.mockReset()
++    signoutRedirectMock.mockReset().mockResolvedValue(undefined)
++    addUserLoadedMock.mockReset()
++    addUserUnloadedMock.mockReset()
++  })
++
++  describe('initialize', () => {
++    it('loads any existing session from storage', async () => {
++      const user = fakeUser()
++      getUserMock.mockResolvedValue(user)
++
++      const store = useAuthStore()
++      await store.initialize()
++
++      // toEqual, not toBe — see the note in the events test below.
++      expect(store.user).toEqual(user)
++      expect(store.isAuthenticated).toBe(true)
++    })
++
++    it("keeps user in sync with oidc-client-ts's userLoaded/userUnloaded events", async () => {
++      const store = useAuthStore()
++      await store.initialize()
++
++      const onLoaded = addUserLoadedMock.mock.calls[0]?.[0] as (u: User) => void
++      const onUnloaded = addUserUnloadedMock.mock.calls[0]?.[0] as () => void
++
++      const refreshedUser = fakeUser({ access_token: 'refreshed-token' })
++      onLoaded(refreshedUser)
++      // toEqual, not toBe: Pinia/Vue wrap an assigned object in a reactive
++      // proxy, so store.user is never reference-identical to what was
++      // assigned — only deep-equal.
++      expect(store.user).toEqual(refreshedUser)
++
++      onUnloaded()
++      expect(store.user).toBeNull()
++    })
++  })
++
++  describe('isAuthenticated', () => {
++    it('is false when there is no signed-in user', async () => {
++      const store = useAuthStore()
++      await store.initialize()
++
++      expect(store.isAuthenticated).toBe(false)
++    })
++
++    it('is false for a user whose session has expired', async () => {
++      getUserMock.mockResolvedValue(fakeUser({ expired: true }))
++
++      const store = useAuthStore()
++      await store.initialize()
++
++      expect(store.isAuthenticated).toBe(false)
++    })
++  })
++
++  describe('accessToken', () => {
++    it('is null when there is no signed-in user', async () => {
++      const store = useAuthStore()
++      await store.initialize()
++
++      expect(store.accessToken).toBeNull()
++    })
++
++    it("reflects the signed-in user's access_token", async () => {
++      getUserMock.mockResolvedValue(fakeUser({ access_token: 'token-abc' }))
++
++      const store = useAuthStore()
++      await store.initialize()
++
++      expect(store.accessToken).toBe('token-abc')
++    })
++  })
++
++  describe('login', () => {
++    it('redirects without carrying state when no returnUrl is given', async () => {
++      const store = useAuthStore()
++      await store.login()
++
++      expect(signinRedirectMock).toHaveBeenCalledWith(undefined)
++    })
++
++    it('carries returnUrl through as oidc-client-ts state, for CallbackView to read back', async () => {
++      const store = useAuthStore()
++      await store.login('/templates/abc')
++
++      expect(signinRedirectMock).toHaveBeenCalledWith({ state: { returnUrl: '/templates/abc' } })
++    })
++  })
++
++  describe('completeLogin', () => {
++    it('sets the user and returns the return URL carried in state', async () => {
++      signinRedirectCallbackMock.mockResolvedValue(fakeUser({ state: { returnUrl: '/templates/abc' } }))
++
++      const store = useAuthStore()
++      const returnUrl = await store.completeLogin()
++
++      expect(store.isAuthenticated).toBe(true)
++      expect(returnUrl).toBe('/templates/abc')
++    })
++
++    it("defaults to '/' when login() was never given a returnUrl", async () => {
++      signinRedirectCallbackMock.mockResolvedValue(fakeUser({ state: undefined }))
++
++      const store = useAuthStore()
++      const returnUrl = await store.completeLogin()
++
++      expect(returnUrl).toBe('/')
++    })
++  })
++
++  describe('logout', () => {
++    it('redirects to end the session at the provider', async () => {
++      const store = useAuthStore()
++      await store.logout()
++
++      expect(signoutRedirectMock).toHaveBeenCalled()
++    })
++  })
++})
+diff --git a/source/ArchitectureToolkit.Client/src/views/ProjectDetailView.vue b/source/ArchitectureToolkit.Client/src/views/ProjectDetailView.vue
+index 6258f64..dc3a263 100644
+--- a/source/ArchitectureToolkit.Client/src/views/ProjectDetailView.vue
++++ b/source/ArchitectureToolkit.Client/src/views/ProjectDetailView.vue
+@@ -274,7 +274,7 @@ onMounted(load)
+                   variant="underlined"
+                   style="max-width: 140px"
+                   :disabled="rowBusy === member.userId"
+-                  @update:model-value="(value) => changeRole(member, value as ProjectRole)"
++                  @update:model-value="(value: unknown) => changeRole(member, value as ProjectRole)"
+                 />
+                 <span v-else>{{ member.role }}</span>
+               </td>
