@@ -11,9 +11,15 @@ function selectTheme(name: ThemeName) {
 </script>
 
 <template>
-  <v-menu>
+  <v-menu location="end">
     <template #activator="{ props: menuProps }">
-      <v-btn id="theme-switcher-button" icon="mdi-palette" v-bind="menuProps" />
+      <v-list-item
+        id="theme-switcher-button"
+        prepend-icon="mdi-palette-outline"
+        append-icon="mdi-chevron-right"
+        title="Themes"
+        v-bind="menuProps"
+      />
     </template>
     <v-list density="compact">
       <v-list-item
