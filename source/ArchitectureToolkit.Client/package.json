@@ -16,6 +16,7 @@
     "format": "oxfmt src/"
   },
   "dependencies": {
+    "@fontsource/roboto": "^5.3.0",
     "@mdi/font": "^7.4.47",
     "dompurify": "^3.4.14",
     "marked": "^18.0.11",
