@@ -8,7 +8,14 @@
 
     // Path mapping for cleaner imports.
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      // @toast-ui/editor ships real types (types/index.d.ts) but its own
+      // package.json "exports" field doesn't declare a "types" condition
+      // for them, so moduleResolution: "bundler" can't find them on its
+      // own and falls back to implicit `any`. Points directly at the real
+      // file, bypassing the broken exports resolution. Safe to remove if
+      // a future release fixes the package's own exports map.
+      "@toast-ui/editor": ["./node_modules/@toast-ui/editor/types/index.d.ts"]
     },
 
     // `vue-tsc --build` produces a .tsbuildinfo file for incremental type-checking.

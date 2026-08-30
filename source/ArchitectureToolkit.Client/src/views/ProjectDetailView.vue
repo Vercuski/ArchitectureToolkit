@@ -4,17 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { projectsApi } from '@/api/projects'
 import { documentsApi } from '@/api/documents'
-import { templatesApi } from '@/api/templates'
-import { categoriesApi } from '@/api/categories'
 import { ApiError } from '@/api/httpClient'
-import type {
-  CategoryDto,
-  ProjectDocumentSummaryDto,
-  ProjectDto,
-  ProjectMemberDto,
-  ProjectRole,
-  TemplateSummaryDto,
-} from '@/api/types'
+import type { ProjectDocumentSummaryDto, ProjectDto, ProjectMemberDto, ProjectRole } from '@/api/types'
 
 const route = useRoute()
 const router = useRouter()
@@ -68,95 +59,6 @@ async function load() {
     loadError.value = err instanceof Error ? err.message : 'Failed to load project.'
   } finally {
     loading.value = false
-  }
-}
-
-// Categories and templates are only needed once someone who can actually
-// create a document opens the dialog — loaded lazily rather than on every
-// project view, since most visits (Viewers, or Editors just checking
-// members) never touch this.
-const categories = ref<CategoryDto[]>([])
-const templates = ref<TemplateSummaryDto[]>([])
-const createOptionsLoaded = ref(false)
-
-const createDialogOpen = ref(false)
-const newCategoryId = ref('')
-const newTitle = ref('')
-const newSourceTemplateId = ref<string | null>(null)
-const newContent = ref('')
-const creatingDocument = ref(false)
-const createDocumentError = ref<string | null>(null)
-
-async function openCreateDialog() {
-  createDocumentError.value = null
-  if (!createOptionsLoaded.value) {
-    try {
-      const [categoriesResult, templatesResult] = await Promise.all([
-        categoriesApi.list(),
-        templatesApi.list(),
-      ])
-      categories.value = categoriesResult
-      templates.value = templatesResult
-      createOptionsLoaded.value = true
-    } catch (err) {
-      createDocumentError.value =
-        err instanceof Error ? err.message : 'Failed to load categories and templates.'
-    }
-  }
-  createDialogOpen.value = true
-}
-
-// Prefills category + content from the chosen template, but leaves both
-// editable afterward — picking a starting point, not locking the user
-// into it.
-async function onTemplateSelected(templateId: string | null) {
-  newSourceTemplateId.value = templateId
-  if (!templateId) {
-    return
-  }
-  try {
-    const template = await templatesApi.get(templateId)
-    newContent.value = template.content
-    if (!newCategoryId.value) {
-      newCategoryId.value = template.categoryId
-    }
-  } catch (err) {
-    createDocumentError.value = err instanceof Error ? err.message : 'Failed to load template content.'
-  }
-}
-
-async function createDocument() {
-  if (!newCategoryId.value || !newTitle.value.trim()) {
-    return
-  }
-  creatingDocument.value = true
-  createDocumentError.value = null
-  try {
-    // A source template's own currentRevisionId, not its Id — matches
-    // CreateProjectDocumentCommand's SourceTemplateRevisionId, which
-    // points at the specific revision the document's content came from.
-    let sourceTemplateRevisionId: string | null = null
-    if (newSourceTemplateId.value) {
-      const template = await templatesApi.get(newSourceTemplateId.value)
-      sourceTemplateRevisionId = template.currentRevisionId
-    }
-    const created = await documentsApi.create(
-      projectId,
-      newCategoryId.value,
-      newTitle.value.trim(),
-      newContent.value,
-      sourceTemplateRevisionId,
-    )
-    createDialogOpen.value = false
-    newCategoryId.value = ''
-    newTitle.value = ''
-    newSourceTemplateId.value = null
-    newContent.value = ''
-    await router.push(`/documents/${created.id}`)
-  } catch (err) {
-    createDocumentError.value = apiErrorMessage(err, 'Failed to create document.')
-  } finally {
-    creatingDocument.value = false
   }
 }
 
@@ -228,7 +130,7 @@ onMounted(load)
           color="accent"
           prepend-icon="mdi-plus"
           class="ma-4 mb-0"
-          @click="openCreateDialog"
+          :to="`/projects/${projectId}/documents/new`"
         >
           New Document
         </v-btn>
@@ -318,41 +220,5 @@ onMounted(load)
       </v-card>
     </template>
 
-    <v-dialog v-model="createDialogOpen" max-width="640">
-      <v-card title="New Document">
-        <v-card-text>
-          <v-alert v-if="createDocumentError" type="error" :text="createDocumentError" class="mb-4" />
-          <v-select
-            id="new-document-category"
-            v-model="newCategoryId"
-            :items="categories"
-            item-title="name"
-            item-value="id"
-            label="Category"
-            class="mb-2"
-          />
-          <v-text-field id="new-document-title" v-model="newTitle" label="Title" class="mb-2" />
-          <v-select
-            id="new-document-source-template"
-            :model-value="newSourceTemplateId"
-            :items="templates"
-            item-title="name"
-            item-value="id"
-            label="Start from a template (optional)"
-            clearable
-            class="mb-2"
-            @update:model-value="onTemplateSelected"
-          />
-          <v-textarea id="new-document-content" v-model="newContent" label="Content (Markdown)" rows="10" />
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" @click="createDialogOpen = false">Cancel</v-btn>
-          <v-btn id="confirm-create-document" color="accent" :loading="creatingDocument" @click="createDocument">
-            Create
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
   </v-container>
 </template>

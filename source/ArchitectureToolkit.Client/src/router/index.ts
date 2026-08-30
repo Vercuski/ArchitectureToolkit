@@ -48,6 +48,21 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      // Nested under the project, unlike DocumentDetailView — creation is
+      // inherently project-scoped (which project's category/template
+      // library and membership apply) in a way an already-created
+      // document's own global identity isn't.
+      //
+      // Lazy-loaded, unlike every other route here: this page pulls in
+      // @toast-ui/editor, which alone roughly doubles the app's JS/CSS
+      // bundle size. Splitting it into its own chunk means every other
+      // page — the vast majority of navigations — doesn't pay that cost.
+      path: '/projects/:projectId/documents/new',
+      name: 'document-create',
+      component: () => import('../views/CreateDocumentView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       // Not nested under /projects/:id — ProjectDocument has its own
       // global identity (~/api/documents/{id} on the backend), and the
       // document's own projectId (from ProjectDocumentDetailDto) is the
