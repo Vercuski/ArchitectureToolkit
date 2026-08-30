@@ -56,7 +56,7 @@ onMounted(loadProjects)
   <v-container>
     <div class="d-flex align-center justify-space-between mb-4">
       <h1 class="text-h5">Projects</h1>
-        <v-btn color="primary" prepend-icon="mdi-plus" @click="createDialogOpen = true">
+        <v-btn color="accent" prepend-icon="mdi-plus" @click="createDialogOpen = true">
           New Project
         </v-btn>
     </div>
@@ -93,7 +93,7 @@ onMounted(loadProjects)
         <v-card-actions>
           <v-spacer />
           <v-btn variant="text" @click="createDialogOpen = false">Cancel</v-btn>
-          <v-btn id="confirm-create-project" color="primary" :loading="creating" @click="createProject">Create</v-btn>
+          <v-btn id="confirm-create-project" color="accent" :loading="creating" @click="createProject">Create</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

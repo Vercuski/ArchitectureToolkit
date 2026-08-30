@@ -8,9 +8,11 @@ import '@fontsource/roboto/500.css'
 import '@fontsource/roboto/700.css'
 import '@mdi/font/css/materialdesignicons.css'
 import { createVuetify } from 'vuetify'
+import { getStoredTheme, THEME_DEFINITIONS } from '@/theme/themes'
 
 export default createVuetify({
   theme: {
-    defaultTheme: 'light',
+    defaultTheme: getStoredTheme(),
+    themes: THEME_DEFINITIONS,
   },
 })

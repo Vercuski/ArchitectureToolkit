@@ -225,7 +225,7 @@ onMounted(load)
         <v-btn
           v-if="canEditDocuments"
           id="new-document-button"
-          color="primary"
+          color="accent"
           prepend-icon="mdi-plus"
           class="ma-4 mb-0"
           @click="openCreateDialog"
@@ -312,7 +312,7 @@ onMounted(load)
               hide-details
               style="max-width: 140px"
             />
-            <v-btn id="confirm-add-member" color="primary" :loading="addBusy" @click="addMember">Add</v-btn>
+            <v-btn id="confirm-add-member" color="accent" :loading="addBusy" @click="addMember">Add</v-btn>
           </div>
         </v-card-text>
       </v-card>
@@ -348,7 +348,7 @@ onMounted(load)
         <v-card-actions>
           <v-spacer />
           <v-btn variant="text" @click="createDialogOpen = false">Cancel</v-btn>
-          <v-btn id="confirm-create-document" color="primary" :loading="creatingDocument" @click="createDocument">
+          <v-btn id="confirm-create-document" color="accent" :loading="creatingDocument" @click="createDocument">
             Create
           </v-btn>
         </v-card-actions>

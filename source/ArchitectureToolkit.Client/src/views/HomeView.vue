@@ -37,10 +37,10 @@ onMounted(() => currentUser.ensureLoaded())
     </v-card>
 
     <div class="d-flex ga-2">
-      <v-btn color="primary" prepend-icon="mdi-folder-multiple-outline" to="/projects">
+      <v-btn color="accent" prepend-icon="mdi-folder-multiple-outline" to="/projects">
         Go to Projects
       </v-btn>
-      <v-btn color="primary" variant="tonal" prepend-icon="mdi-file-document-multiple-outline" to="/templates">
+      <v-btn color="accent" variant="tonal" prepend-icon="mdi-file-document-multiple-outline" to="/templates">
         Browse Templates
       </v-btn>
     </div>

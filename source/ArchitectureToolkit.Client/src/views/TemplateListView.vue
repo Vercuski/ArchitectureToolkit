@@ -88,7 +88,7 @@ onMounted(() => {
       <v-btn
         v-if="isArchitect"
         id="new-template-button"
-        color="primary"
+        color="accent"
         prepend-icon="mdi-plus"
         @click="createDialogOpen = true"
       >
@@ -132,7 +132,7 @@ onMounted(() => {
         <v-card-actions>
           <v-spacer />
           <v-btn variant="text" @click="createDialogOpen = false">Cancel</v-btn>
-          <v-btn id="confirm-create-template" color="primary" :loading="creating" @click="createTemplate">
+          <v-btn id="confirm-create-template" color="accent" :loading="creating" @click="createTemplate">
             Create
           </v-btn>
         </v-card-actions>

@@ -116,7 +116,7 @@ onMounted(() => {
           <h1 class="text-h5">{{ template.name }}</h1>
           <span class="text-caption">v{{ template.currentVersion }}</span>
         </div>
-        <v-btn v-if="isArchitect" id="new-revision-button" color="primary" @click="openReviseDialog">
+        <v-btn v-if="isArchitect" id="new-revision-button" color="accent" @click="openReviseDialog">
           New Revision
         </v-btn>
       </div>
@@ -168,7 +168,7 @@ onMounted(() => {
         <v-card-actions>
           <v-spacer />
           <v-btn variant="text" @click="reviseDialogOpen = false">Cancel</v-btn>
-          <v-btn id="confirm-create-revision" color="primary" :loading="revising" @click="createRevision">
+          <v-btn id="confirm-create-revision" color="accent" :loading="revising" @click="createRevision">
             Save
           </v-btn>
         </v-card-actions>

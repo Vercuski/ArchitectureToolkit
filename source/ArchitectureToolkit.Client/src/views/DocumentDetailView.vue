@@ -148,7 +148,7 @@ onMounted(load)
             Started from a template
           </v-chip>
         </div>
-        <v-btn v-if="canEdit" id="new-document-revision-button" color="primary" @click="openReviseDialog">
+        <v-btn v-if="canEdit" id="new-document-revision-button" color="accent" @click="openReviseDialog">
           New Revision
         </v-btn>
       </div>
@@ -200,7 +200,7 @@ onMounted(load)
         <v-card-actions>
           <v-spacer />
           <v-btn variant="text" @click="reviseDialogOpen = false">Cancel</v-btn>
-          <v-btn id="confirm-create-document-revision" color="primary" :loading="revising" @click="createRevision">
+          <v-btn id="confirm-create-document-revision" color="accent" :loading="revising" @click="createRevision">
             Save
           </v-btn>
         </v-card-actions>
