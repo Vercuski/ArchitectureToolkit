@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest'
-import { mount, flushPromises, type VueWrapper } from '@vue/test-utils'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { mount, flushPromises, DOMWrapper, type VueWrapper } from '@vue/test-utils'
 import { testVuetify } from '@/test-utils/vuetify'
 import type { CategoryDto, TemplateDetailDto, TemplateSummaryDto } from '@/api/types'
 
@@ -150,5 +150,73 @@ describe('CreateDocumentView', () => {
     mountedWrappers = []
 
     expect(destroyMock).toHaveBeenCalled()
+  })
+
+  describe('cancel', () => {
+    it('navigates away directly when the editor content is unchanged', async () => {
+      const wrapper = await mountView()
+      const vm = wrapper.vm as unknown as { cancel: () => void }
+      vm.cancel()
+
+      expect(pushMock).toHaveBeenCalledWith('/projects/project-1')
+      expect(document.body.textContent).not.toContain('Discard changes?')
+    })
+
+    it('prompts before discarding when the editor content has changed', async () => {
+      const wrapper = await mountView()
+      getMarkdownMock.mockReturnValue('# Something I typed')
+      const vm = wrapper.vm as unknown as { cancel: () => void }
+      vm.cancel()
+      await wrapper.vm.$nextTick()
+
+      expect(pushMock).not.toHaveBeenCalled()
+      expect(document.body.textContent).toContain('Discard changes?')
+    })
+
+    it('navigates away once the user confirms discarding', async () => {
+      const wrapper = await mountView()
+      getMarkdownMock.mockReturnValue('# Something I typed')
+      const vm = wrapper.vm as unknown as { cancel: () => void }
+      vm.cancel()
+      await wrapper.vm.$nextTick()
+
+      await new DOMWrapper(document.body.querySelector('#confirm-discard-changes')!).trigger('click')
+
+      expect(pushMock).toHaveBeenCalledWith('/projects/project-1')
+    })
+
+    it("doesn't navigate when the user chooses to keep editing", async () => {
+      const wrapper = await mountView()
+      getMarkdownMock.mockReturnValue('# Something I typed')
+      const vm = wrapper.vm as unknown as { cancel: () => void }
+      vm.cancel()
+      await wrapper.vm.$nextTick()
+
+      const keepEditingButton = [...document.body.querySelectorAll('button')].find((b) =>
+        b.textContent?.includes('Keep Editing'),
+      )
+      await new DOMWrapper(keepEditingButton!).trigger('click')
+
+      expect(pushMock).not.toHaveBeenCalled()
+    })
+
+    it("treats a template selection's own prefilled content as the new baseline, not a change to confirm", async () => {
+      const wrapper = await mountView()
+      const vm = wrapper.vm as unknown as {
+        onTemplateSelected: (id: string | null) => Promise<void>
+        cancel: () => void
+      }
+      await vm.onTemplateSelected('template-1')
+      await flushPromises()
+      // The editor now "contains" the template's content, matching what a
+      // real setMarkdown call would leave getMarkdown() returning — this
+      // is the mock standing in for that, not an edit the user made.
+      getMarkdownMock.mockReturnValue('# ADR Template\n\nStarting content.')
+
+      vm.cancel()
+
+      expect(pushMock).toHaveBeenCalledWith('/projects/project-1')
+      expect(document.body.textContent).not.toContain('Discard changes?')
+    })
   })
 })

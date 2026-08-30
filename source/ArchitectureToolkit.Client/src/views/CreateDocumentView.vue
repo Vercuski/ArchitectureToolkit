@@ -31,6 +31,13 @@ const createError = ref<string | null>(null)
 
 const editorContainer = ref<HTMLElement | null>(null)
 let editor: Editor | null = null
+// Snapshot of the editor's content right after the last programmatic
+// setMarkdown call (initial mount, or a template selection) — compared
+// against the live content at cancel-time to decide whether the user has
+// actually typed something worth confirming before discarding.
+let editorBaseline = ''
+
+const cancelConfirmOpen = ref(false)
 
 // Only templates belonging to the selected category — the whole point of
 // the two dropdowns being paired rather than independent.
@@ -72,12 +79,14 @@ async function onTemplateSelected(templateId: string | null) {
   if (!templateId) {
     selectedTemplateDetail.value = null
     editor?.setMarkdown('')
+    editorBaseline = ''
     return
   }
   try {
     const template = await templatesApi.get(templateId)
     selectedTemplateDetail.value = template
     editor?.setMarkdown(template.content)
+    editorBaseline = template.content
     if (!selectedCategoryId.value) {
       selectedCategoryId.value = template.categoryId
     }
@@ -110,7 +119,20 @@ async function createDocument() {
   }
 }
 
+function hasUnsavedEditorChanges(): boolean {
+  return editor !== null && editor.getMarkdown() !== editorBaseline
+}
+
 function cancel() {
+  if (hasUnsavedEditorChanges()) {
+    cancelConfirmOpen.value = true
+    return
+  }
+  router.push(`/projects/${projectId}`)
+}
+
+function confirmDiscard() {
+  cancelConfirmOpen.value = false
   router.push(`/projects/${projectId}`)
 }
 
@@ -137,7 +159,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <v-container>
+  <v-container fluid>
     <v-progress-linear v-if="loading" indeterminate class="mb-4" />
     <v-alert v-if="loadError" type="error" :text="loadError" class="mb-4" />
 
@@ -175,7 +197,7 @@ onBeforeUnmount(() => {
 
       <v-text-field id="new-document-title" v-model="title" label="Title" class="mb-4" />
 
-      <div ref="editorContainer" id="new-document-editor" class="mb-4"></div>
+      <div ref="editorContainer" id="new-document-editor" class="mb-6"></div>
 
       <div class="d-flex justify-end ga-2">
         <v-btn id="cancel-create-document" variant="text" @click="cancel">Cancel</v-btn>
@@ -190,5 +212,18 @@ onBeforeUnmount(() => {
         </v-btn>
       </div>
     </template>
+
+    <v-dialog v-model="cancelConfirmOpen" max-width="400">
+      <v-card title="Discard changes?">
+        <v-card-text>
+          You have unsaved changes to this document's content. Are you sure you want to discard them?
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="cancelConfirmOpen = false">Keep Editing</v-btn>
+          <v-btn id="confirm-discard-changes" color="error" @click="confirmDiscard">Discard</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
