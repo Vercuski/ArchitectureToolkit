@@ -4,16 +4,9 @@ import { useRoute } from 'vue-router'
 import { documentsApi } from '@/api/documents'
 import { projectsApi } from '@/api/projects'
 import { categoriesApi } from '@/api/categories'
-import { ApiError } from '@/api/httpClient'
 import { useAuthStore } from '@/stores/auth'
 import MarkdownView from '@/components/MarkdownView.vue'
-import type {
-  BumpType,
-  CategoryDto,
-  DocumentRevisionDetailDto,
-  DocumentRevisionDto,
-  ProjectDocumentDetailDto,
-} from '@/api/types'
+import type { CategoryDto, DocumentRevisionDetailDto, DocumentRevisionDto, ProjectDocumentDetailDto } from '@/api/types'
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -38,14 +31,6 @@ const categoryName = computed(
   () => categories.value.find((c) => c.id === document.value?.categoryId)?.name ?? 'Uncategorized',
 )
 
-const bumpTypeOptions: BumpType[] = ['Major', 'Minor', 'Patch']
-
-const reviseDialogOpen = ref(false)
-const newContent = ref('')
-const newBumpType = ref<BumpType>('Minor')
-const revising = ref(false)
-const reviseError = ref<string | null>(null)
-
 const viewRevision = ref<DocumentRevisionDetailDto | null>(null)
 const viewRevisionLoading = ref(false)
 
@@ -68,48 +53,6 @@ async function load() {
     loadError.value = err instanceof Error ? err.message : 'Failed to load document.'
   } finally {
     loading.value = false
-  }
-}
-
-function openReviseDialog() {
-  newContent.value = document.value?.content ?? ''
-  newBumpType.value = 'Minor'
-  reviseError.value = null
-  reviseDialogOpen.value = true
-}
-
-async function createRevision() {
-  if (!document.value || !newContent.value.trim()) {
-    return
-  }
-  revising.value = true
-  reviseError.value = null
-  try {
-    await documentsApi.createRevision(
-      documentId,
-      document.value.currentRevisionId,
-      newBumpType.value,
-      newContent.value,
-    )
-    reviseDialogOpen.value = false
-    await load()
-  } catch (err) {
-    if (err instanceof ApiError && err.status === 409) {
-      // Same conflict pattern as TemplateDetailView: refresh so
-      // currentRevisionId is no longer stale, but keep the draft and
-      // the dialog open rather than discarding what the user wrote.
-      await load()
-      reviseError.value =
-        'Someone else saved a new revision of this document while you were editing. ' +
-        'Review the latest content behind this dialog, then Save again to reapply your changes.'
-    } else {
-      reviseError.value =
-        err instanceof ApiError
-          ? ((err.body as { error?: string })?.error ?? 'Failed to create revision.')
-          : 'Failed to create revision.'
-    }
-  } finally {
-    revising.value = false
   }
 }
 
@@ -148,7 +91,12 @@ onMounted(load)
             Started from a template
           </v-chip>
         </div>
-        <v-btn v-if="canEdit" id="new-document-revision-button" color="accent" @click="openReviseDialog">
+        <v-btn
+          v-if="canEdit"
+          id="new-document-revision-button"
+          color="accent"
+          :to="`/documents/${documentId}/revise`"
+        >
           New Revision
         </v-btn>
       </div>
@@ -183,29 +131,6 @@ onMounted(load)
         </v-table>
       </v-card>
     </template>
-
-    <v-dialog v-model="reviseDialogOpen" max-width="640">
-      <v-card title="New Revision">
-        <v-card-text>
-          <v-alert v-if="reviseError" type="error" :text="reviseError" class="mb-4" />
-          <v-select
-            id="new-document-revision-bump-type"
-            v-model="newBumpType"
-            :items="bumpTypeOptions"
-            label="Bump type"
-            class="mb-2"
-          />
-          <v-textarea id="new-document-revision-content" v-model="newContent" label="Content (Markdown)" rows="10" />
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" @click="reviseDialogOpen = false">Cancel</v-btn>
-          <v-btn id="confirm-create-document-revision" color="accent" :loading="revising" @click="createRevision">
-            Save
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
 
     <v-dialog :model-value="!!viewRevision" max-width="640" @update:model-value="viewRevision = null">
       <v-card v-if="viewRevision" :title="`Version ${viewRevision.version}`">

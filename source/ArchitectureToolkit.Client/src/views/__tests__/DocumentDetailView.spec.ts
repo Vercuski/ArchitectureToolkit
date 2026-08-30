@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { mount, flushPromises, DOMWrapper, type VueWrapper } from '@vue/test-utils'
+import { mount, flushPromises, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { testVuetify } from '@/test-utils/vuetify'
 import type { CategoryDto, ProjectDocumentDetailDto, ProjectMemberDto, DocumentRevisionDto } from '@/api/types'
@@ -17,13 +17,11 @@ vi.mock('@/auth/oidcConfig', () => ({
 
 const getMock = vi.fn()
 const listRevisionsMock = vi.fn()
-const createRevisionMock = vi.fn()
 const getRevisionMock = vi.fn()
 vi.mock('@/api/documents', () => ({
   documentsApi: {
     get: getMock,
     listRevisions: listRevisionsMock,
-    createRevision: createRevisionMock,
     getRevision: getRevisionMock,
   },
 }))
@@ -34,9 +32,6 @@ vi.mock('@/api/projects', () => ({ projectsApi: { listMembers: listMembersMock }
 const listCategoriesMock = vi.fn()
 vi.mock('@/api/categories', () => ({ categoriesApi: { list: listCategoriesMock } }))
 
-// The real ApiError, not a mock — createRevision's caller uses
-// `instanceof ApiError`, so the 409 test needs a real instance.
-const { ApiError } = await import('@/api/httpClient')
 const { useAuthStore } = await import('@/stores/auth')
 const { default: DocumentDetailView } = await import('../DocumentDetailView.vue')
 
@@ -105,7 +100,6 @@ describe('DocumentDetailView', () => {
     listRevisionsMock.mockReset().mockResolvedValue(revisions())
     listCategoriesMock.mockReset().mockResolvedValue(categories())
     listMembersMock.mockReset().mockResolvedValue([member('Editor')])
-    createRevisionMock.mockReset()
     getRevisionMock.mockReset()
   })
 
@@ -143,57 +137,15 @@ describe('DocumentDetailView', () => {
     expect(viewerWrapper.find('#new-document-revision-button').exists()).toBe(false)
   })
 
-  it('creates a revision and refreshes on success', async () => {
-    createRevisionMock.mockResolvedValue(revisions()[0])
-
+  it('links "New Revision" to the dedicated revise page', async () => {
     const wrapper = await mountView()
-    await wrapper.find('#new-document-revision-button').trigger('click')
-    await flushPromises()
+    // findComponent(cssSelector) types as WrapperLike (it could match a
+    // plain element), but this selector always matches the VBtn itself —
+    // cast to access .props(). The unparameterized VueWrapper type also
+    // can't statically know VBtn's prop names, hence the second cast.
+    const button = wrapper.findComponent('#new-document-revision-button') as VueWrapper
+    const props = button.props() as Record<string, unknown>
 
-    getMock.mockResolvedValue(docDetail({ currentVersion: '1.1.0', currentRevisionId: 'revision-2' }))
-
-    const contentField = document.body.querySelector('#new-document-revision-content') as HTMLTextAreaElement
-    await new DOMWrapper(contentField).setValue('# Data Model ADR\n\nUpdated.')
-    await new DOMWrapper(document.body.querySelector('#confirm-create-document-revision')!).trigger('click')
-    await flushPromises()
-
-    expect(createRevisionMock).toHaveBeenCalledWith(
-      'document-1',
-      'revision-1',
-      'Minor',
-      '# Data Model ADR\n\nUpdated.',
-    )
-    expect(getMock).toHaveBeenCalledTimes(2)
-    expect(wrapper.text()).toContain('v1.1.0')
-  })
-
-  it('on a 409 conflict, refreshes the stale revision id and keeps the draft open for retry', async () => {
-    createRevisionMock.mockRejectedValueOnce(new ApiError(409, { error: 'Revision conflict' }))
-    createRevisionMock.mockResolvedValueOnce(revisions()[0])
-
-    const wrapper = await mountView()
-    await wrapper.find('#new-document-revision-button').trigger('click')
-    await flushPromises()
-
-    getMock.mockResolvedValue(docDetail({ currentRevisionId: 'revision-2' }))
-
-    const contentField = document.body.querySelector('#new-document-revision-content') as HTMLTextAreaElement
-    await new DOMWrapper(contentField).setValue('# Data Model ADR\n\nMy edit.')
-    await new DOMWrapper(document.body.querySelector('#confirm-create-document-revision')!).trigger('click')
-    await flushPromises()
-
-    expect(document.body.textContent).toContain('Someone else saved a new revision')
-    expect(contentField.value).toBe('# Data Model ADR\n\nMy edit.')
-    expect(getMock).toHaveBeenCalledTimes(2)
-
-    await new DOMWrapper(document.body.querySelector('#confirm-create-document-revision')!).trigger('click')
-    await flushPromises()
-
-    expect(createRevisionMock).toHaveBeenLastCalledWith(
-      'document-1',
-      'revision-2',
-      'Minor',
-      '# Data Model ADR\n\nMy edit.',
-    )
+    expect(props.to).toBe('/documents/document-1/revise')
   })
 })

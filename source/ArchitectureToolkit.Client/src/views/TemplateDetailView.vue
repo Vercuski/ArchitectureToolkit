@@ -2,10 +2,9 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { templatesApi } from '@/api/templates'
-import { ApiError } from '@/api/httpClient'
 import { useCurrentUserStore } from '@/stores/currentUser'
 import MarkdownView from '@/components/MarkdownView.vue'
-import type { BumpType, TemplateDetailDto, TemplateRevisionDetailDto, TemplateRevisionDto } from '@/api/types'
+import type { TemplateDetailDto, TemplateRevisionDetailDto, TemplateRevisionDto } from '@/api/types'
 
 const route = useRoute()
 const currentUser = useCurrentUserStore()
@@ -17,14 +16,6 @@ const loading = ref(true)
 const loadError = ref<string | null>(null)
 
 const isArchitect = computed(() => currentUser.profile?.systemRole === 'Architect')
-
-const bumpTypeOptions: BumpType[] = ['Major', 'Minor', 'Patch']
-
-const reviseDialogOpen = ref(false)
-const newContent = ref('')
-const newBumpType = ref<BumpType>('Minor')
-const revising = ref(false)
-const reviseError = ref<string | null>(null)
 
 const viewRevision = ref<TemplateRevisionDetailDto | null>(null)
 const viewRevisionLoading = ref(false)
@@ -43,50 +34,6 @@ async function load() {
     loadError.value = err instanceof Error ? err.message : 'Failed to load template.'
   } finally {
     loading.value = false
-  }
-}
-
-function openReviseDialog() {
-  newContent.value = template.value?.content ?? ''
-  newBumpType.value = 'Minor'
-  reviseError.value = null
-  reviseDialogOpen.value = true
-}
-
-async function createRevision() {
-  if (!template.value || !newContent.value.trim()) {
-    return
-  }
-  revising.value = true
-  reviseError.value = null
-  try {
-    await templatesApi.createRevision(
-      templateId,
-      template.value.currentRevisionId,
-      newBumpType.value,
-      newContent.value,
-    )
-    reviseDialogOpen.value = false
-    await load()
-  } catch (err) {
-    if (err instanceof ApiError && err.status === 409) {
-      // Someone else saved a revision after this template was loaded, so
-      // template.currentRevisionId is now stale — retrying with the same
-      // value would just conflict again. Refresh it, but leave newContent
-      // and the open dialog alone: the user wrote real content here, and
-      // silently discarding it would be worse than the conflict itself.
-      await load()
-      reviseError.value =
-        'Someone else saved a new revision of this template while you were editing. ' +
-        'Review the latest content behind this dialog, then Save again to reapply your changes.'
-    } else {
-      reviseError.value =
-        err instanceof ApiError
-          ? ((err.body as { error?: string })?.error ?? 'Failed to create revision.')
-          : 'Failed to create revision.'
-    }
-  } finally {
-    revising.value = false
   }
 }
 
@@ -116,7 +63,7 @@ onMounted(() => {
           <h1 class="text-h5">{{ template.name }}</h1>
           <span class="text-caption">v{{ template.currentVersion }}</span>
         </div>
-        <v-btn v-if="isArchitect" id="new-revision-button" color="accent" @click="openReviseDialog">
+        <v-btn v-if="isArchitect" id="new-revision-button" color="accent" :to="`/templates/${templateId}/revise`">
           New Revision
         </v-btn>
       </div>
@@ -151,29 +98,6 @@ onMounted(() => {
         </v-table>
       </v-card>
     </template>
-
-    <v-dialog v-model="reviseDialogOpen" max-width="640">
-      <v-card title="New Revision">
-        <v-card-text>
-          <v-alert v-if="reviseError" type="error" :text="reviseError" class="mb-4" />
-          <v-select
-            id="new-revision-bump-type"
-            v-model="newBumpType"
-            :items="bumpTypeOptions"
-            label="Bump type"
-            class="mb-2"
-          />
-          <v-textarea id="new-revision-content" v-model="newContent" label="Content (Markdown)" rows="10" />
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" @click="reviseDialogOpen = false">Cancel</v-btn>
-          <v-btn id="confirm-create-revision" color="accent" :loading="revising" @click="createRevision">
-            Save
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
 
     <v-dialog :model-value="!!viewRevision" max-width="640" @update:model-value="viewRevision = null">
       <v-card v-if="viewRevision" :title="`Version ${viewRevision.version}`">

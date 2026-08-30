@@ -48,6 +48,16 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      // Lazy-loaded — see the matching note on the documents/new route
+      // below: @toast-ui/editor roughly doubles the app's JS/CSS bundle
+      // size on its own, and only pages that actually use it should pay
+      // for that.
+      path: '/templates/:id/revise',
+      name: 'template-revise',
+      component: () => import('../views/ReviseTemplateView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       // Nested under the project, unlike DocumentDetailView — creation is
       // inherently project-scoped (which project's category/template
       // library and membership apply) in a way an already-created
@@ -70,6 +80,13 @@ const router = createRouter({
       path: '/documents/:id',
       name: 'document-detail',
       component: DocumentDetailView,
+      meta: { requiresAuth: true },
+    },
+    {
+      // Lazy-loaded, same reasoning as documents/new and templates/:id/revise.
+      path: '/documents/:id/revise',
+      name: 'document-revise',
+      component: () => import('../views/ReviseDocumentView.vue'),
       meta: { requiresAuth: true },
     },
     {
