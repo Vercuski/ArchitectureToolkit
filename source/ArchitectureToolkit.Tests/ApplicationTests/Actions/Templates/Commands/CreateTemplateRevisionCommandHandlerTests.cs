@@ -36,8 +36,10 @@ public class CreateTemplateRevisionCommandHandlerTests
                 Task.FromResult(templates.SingleOrDefault(t => t.Id == id)));
     }
 
-    private CreateTemplateRevisionCommandHandler CreateHandler() =>
-        new(_commandDbContext, _queryDbContext, _unitOfWork);
+    private CreateTemplateRevisionCommandHandler CreateHandler()
+    {
+        return new(_commandDbContext, _queryDbContext, _unitOfWork);
+    }
 
     [Test]
     public async Task Handle_Should_ReturnNotFound_When_CallerDoesNotExist()

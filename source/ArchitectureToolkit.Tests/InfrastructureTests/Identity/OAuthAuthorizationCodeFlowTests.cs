@@ -180,7 +180,9 @@ public class OAuthAuthorizationCodeFlowTests
         return Convert.ToBase64String(hash).TrimEnd('=').Replace('+', '-').Replace('/', '_');
     }
 
-    private static string QueryString(Dictionary<string, string> parameters) =>
-        "?" + string.Join("&", parameters.Select(kv =>
+    private static string QueryString(Dictionary<string, string> parameters)
+    {
+        return "?" + string.Join("&", parameters.Select(kv =>
             $"{Uri.EscapeDataString(kv.Key)}={Uri.EscapeDataString(kv.Value)}"));
+    }
 }

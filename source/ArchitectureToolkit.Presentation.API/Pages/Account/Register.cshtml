@@ -1,0 +1,47 @@
+@page
+@model ArchitectureToolkit.Presentation.API.Pages.Account.RegisterModel
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Create the first account — ArchitectureToolkit</title>
+</head>
+<body>
+    <h1>Create the first account</h1>
+    <p>
+        No one has signed in to this install yet. The account you create
+        here becomes an Architect and can manage the shared template
+        library (ADR-0009). Placeholder registration screen (ADR-0003
+        follow-up) — superseded by the Vue SPA once ADR-0005's hosting
+        topology is implemented.
+    </p>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div style="color:red">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <p>@error.ErrorMessage</p>
+            }
+        </div>
+    }
+
+    <form method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
+        <div>
+            <label for="Email">Email</label>
+            <input id="Email" name="Email" type="email" required autocomplete="username" />
+        </div>
+        <div>
+            <label for="Password">Password</label>
+            <input id="Password" name="Password" type="password" required autocomplete="new-password" />
+        </div>
+        <div>
+            <label for="ConfirmPassword">Confirm password</label>
+            <input id="ConfirmPassword" name="ConfirmPassword" type="password" required autocomplete="new-password" />
+        </div>
+        <button type="submit">Create account</button>
+    </form>
+</body>
+</html>

@@ -6,8 +6,10 @@ namespace ArchitectureToolkit.Tests.DomainTests.ValueObjects;
 [TestFixture]
 public class RevisionHistoryTests
 {
-    private static FakeRevision Factory(VersionNumber version, BumpType? bumpType, string content, Guid authorId) =>
-        new(version, bumpType, content, authorId);
+    private static FakeRevision Factory(VersionNumber version, BumpType? bumpType, string content, Guid authorId)
+    {
+        return new(version, bumpType, content, authorId);
+    }
 
     [Test]
     public void Constructor_Should_Allow_BothNull()

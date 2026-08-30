@@ -36,10 +36,10 @@ public class ListCategoriesQueryHandlerTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.IsSuccess, Is.True);
-            Assert.That(result.Value!.Select(c => c.Code), Is.EqualTo(new[]
-            {
+            Assert.That(result.Value!.Select(c => c.Code), Is.EqualTo(
+            [
                 "00-vision-and-strategy", "02-core-architecture", "11-handover",
-            }));
+            ]));
         }
     }
 

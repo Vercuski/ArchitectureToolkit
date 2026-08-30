@@ -30,8 +30,10 @@ public class RemoveProjectMemberCommandHandlerTests
             .ReturnsLazily((IQueryable<ProjectMember> q, CancellationToken _) => Task.FromResult(q.ToList()));
     }
 
-    private RemoveProjectMemberCommandHandler CreateHandler() =>
-        new(_commandDbContext, _queryDbContext, _unitOfWork);
+    private RemoveProjectMemberCommandHandler CreateHandler()
+    {
+        return new(_commandDbContext, _queryDbContext, _unitOfWork);
+    }
 
     [Test]
     public async Task Handle_Should_ReturnNotFound_When_CallerIsNotAMember()

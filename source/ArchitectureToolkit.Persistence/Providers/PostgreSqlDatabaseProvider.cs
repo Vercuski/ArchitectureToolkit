@@ -1,6 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
-using System.Data;
 
 namespace ArchitectureToolkit.Persistence.Providers;
 

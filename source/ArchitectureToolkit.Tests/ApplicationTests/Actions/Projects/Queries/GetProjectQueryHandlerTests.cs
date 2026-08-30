@@ -28,7 +28,10 @@ public class GetProjectQueryHandlerTests
             .ReturnsLazily((IQueryable<ProjectMember> q, CancellationToken _) => Task.FromResult(q.SingleOrDefault()));
     }
 
-    private GetProjectQueryHandler CreateHandler() => new(_queryDbContext);
+    private GetProjectQueryHandler CreateHandler()
+    {
+        return new(_queryDbContext);
+    }
 
     [Test]
     public async Task Handle_Should_ReturnNotFound_When_ProjectDoesNotExist()

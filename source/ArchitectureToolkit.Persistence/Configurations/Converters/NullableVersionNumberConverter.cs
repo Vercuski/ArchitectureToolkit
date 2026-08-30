@@ -14,7 +14,7 @@ public sealed class NullableVersionNumberConverter : ValueConverter<VersionNumbe
     public NullableVersionNumberConverter()
         : base(
             v => v.HasValue ? v.Value.ToString() : null,
-            v => v == null ? (VersionNumber?)null : VersionNumber.Parse(v))
+            v => v == null ? null : VersionNumber.Parse(v))
     {
     }
 }

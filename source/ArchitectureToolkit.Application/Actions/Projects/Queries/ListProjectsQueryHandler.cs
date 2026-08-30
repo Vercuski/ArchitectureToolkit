@@ -20,6 +20,6 @@ public sealed class ListProjectsQueryHandler(IQueryDbContext queryDbContext)
         var projects = await queryDbContext.ToListAsync(query, cancellationToken);
 
         return Result<IReadOnlyCollection<ProjectDto>>.Success(
-            projects.Select(p => new ProjectDto(p.Id, p.Name)).ToList());
+            [.. projects.Select(p => new ProjectDto(p.Id, p.Name))]);
     }
 }

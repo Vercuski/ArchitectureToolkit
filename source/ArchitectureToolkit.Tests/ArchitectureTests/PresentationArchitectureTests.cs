@@ -1,6 +1,3 @@
-using NetArchTest.Rules;
-using static ArchitectureToolkit.Tests.ArchitectureTests.AssemblyReferences;
-
 namespace ArchitectureToolkit.Tests.ArchitectureTests;
 
 [TestFixture]

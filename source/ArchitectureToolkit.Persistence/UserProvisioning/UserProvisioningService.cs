@@ -1,8 +1,8 @@
-using System.Security.Claims;
 using ArchitectureToolkit.Application.Abstractions;
 using ArchitectureToolkit.Application.Abstractions.Context;
 using ArchitectureToolkit.Domain.Entities;
 using ArchitectureToolkit.Domain.ValueObjects;
+using System.Security.Claims;
 
 namespace ArchitectureToolkit.Persistence.UserProvisioning;
 

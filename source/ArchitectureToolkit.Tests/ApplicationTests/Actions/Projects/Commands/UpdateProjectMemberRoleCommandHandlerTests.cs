@@ -34,8 +34,10 @@ public class UpdateProjectMemberRoleCommandHandlerTests
             .ReturnsLazily((IQueryable<User> q, CancellationToken _) => Task.FromResult(q.SingleOrDefault()));
     }
 
-    private UpdateProjectMemberRoleCommandHandler CreateHandler() =>
-        new(_commandDbContext, _queryDbContext, _unitOfWork);
+    private UpdateProjectMemberRoleCommandHandler CreateHandler()
+    {
+        return new(_commandDbContext, _queryDbContext, _unitOfWork);
+    }
 
     [Test]
     public async Task Handle_Should_ReturnNotFound_When_CallerIsNotAMember()

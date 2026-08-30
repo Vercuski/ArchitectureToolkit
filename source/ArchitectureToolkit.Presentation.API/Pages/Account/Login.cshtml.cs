@@ -1,3 +1,4 @@
+using ArchitectureToolkit.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -13,7 +14,7 @@ namespace ArchitectureToolkit.Presentation.API.Pages.Account;
 /// authorization_code flow. Superseded by the Vue SPA once ADR-0005 lands
 /// — this exists only so the flow has somewhere to send the browser today.
 /// </summary>
-public class LoginModel(SignInManager<IdentityUser> signInManager) : PageModel
+public class LoginModel(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager) : PageModel
 {
     [BindProperty]
     public string Email { get; set; } = string.Empty;
@@ -24,8 +25,17 @@ public class LoginModel(SignInManager<IdentityUser> signInManager) : PageModel
     [BindProperty(SupportsGet = true)]
     public string? ReturnUrl { get; set; }
 
-    public void OnGet()
+    public async Task<IActionResult> OnGetAsync()
     {
+        // Nobody could possibly have credentials to enter yet — send the
+        // browser to registration instead, which becomes the de facto
+        // landing page the very first time the app is opened.
+        if (!await IdentityBootstrapper.HasAnyIdentityUsersAsync(userManager))
+        {
+            return RedirectToPage("/Account/Register", new { ReturnUrl });
+        }
+
+        return Page();
     }
 
     public async Task<IActionResult> OnPostAsync()

@@ -39,8 +39,10 @@ public class PromoteUserCommandHandlerTests
             .ReturnsLazily((IQueryable<User> query, CancellationToken _) => Task.FromResult(query.ToList()));
     }
 
-    private PromoteUserCommandHandler CreateHandler() =>
-        new(_commandDbContext, _queryDbContext, _unitOfWork);
+    private PromoteUserCommandHandler CreateHandler()
+    {
+        return new(_commandDbContext, _queryDbContext, _unitOfWork);
+    }
 
     [Test]
     public async Task Handle_Should_ReturnNotFound_When_CallerDoesNotExist()

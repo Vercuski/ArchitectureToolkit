@@ -33,8 +33,10 @@ public class CreateDocumentRevisionCommandHandlerTests
             .ReturnsLazily((IQueryable<ProjectMember> q, CancellationToken _) => Task.FromResult(q.SingleOrDefault()));
     }
 
-    private CreateDocumentRevisionCommandHandler CreateHandler() =>
-        new(_commandDbContext, _queryDbContext, _unitOfWork);
+    private CreateDocumentRevisionCommandHandler CreateHandler()
+    {
+        return new(_commandDbContext, _queryDbContext, _unitOfWork);
+    }
 
     [Test]
     public async Task Handle_Should_ReturnNotFound_When_DocumentDoesNotExist()

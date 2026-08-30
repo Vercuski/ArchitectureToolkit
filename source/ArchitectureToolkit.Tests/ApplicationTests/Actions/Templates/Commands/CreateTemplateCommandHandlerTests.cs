@@ -32,8 +32,10 @@ public class CreateTemplateCommandHandlerTests
             .ReturnsLazily((IQueryable<Category> q, CancellationToken _) => Task.FromResult(q.SingleOrDefault()));
     }
 
-    private CreateTemplateCommandHandler CreateHandler() =>
-        new(_commandDbContext, _queryDbContext, _unitOfWork);
+    private CreateTemplateCommandHandler CreateHandler()
+    {
+        return new(_commandDbContext, _queryDbContext, _unitOfWork);
+    }
 
     [Test]
     public async Task Handle_Should_ReturnNotFound_When_CallerDoesNotExist()

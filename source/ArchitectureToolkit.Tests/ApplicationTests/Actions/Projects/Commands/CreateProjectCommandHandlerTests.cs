@@ -28,8 +28,10 @@ public class CreateProjectCommandHandlerTests
             .ReturnsLazily((IQueryable<User> query, CancellationToken _) => Task.FromResult(query.SingleOrDefault()));
     }
 
-    private CreateProjectCommandHandler CreateHandler() =>
-        new(_commandDbContext, _queryDbContext, _unitOfWork);
+    private CreateProjectCommandHandler CreateHandler()
+    {
+        return new(_commandDbContext, _queryDbContext, _unitOfWork);
+    }
 
     [Test]
     public async Task Handle_Should_ReturnNotFound_When_CallerDoesNotExist()

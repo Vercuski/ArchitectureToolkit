@@ -2,7 +2,6 @@ using ArchitectureToolkit.Application.Abstractions;
 using ArchitectureToolkit.Application.Abstractions.Context;
 using ArchitectureToolkit.Application.Actions.Templates.Queries;
 using ArchitectureToolkit.Domain.Entities;
-using ArchitectureToolkit.Domain.ValueObjects;
 
 namespace ArchitectureToolkit.Tests.ApplicationTests.Actions.Templates.Queries;
 

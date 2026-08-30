@@ -1,9 +1,9 @@
-using System.Security.Claims;
 using ArchitectureToolkit.Application.Abstractions;
 using ArchitectureToolkit.Application.Abstractions.Context;
 using ArchitectureToolkit.Domain.Entities;
 using ArchitectureToolkit.Domain.ValueObjects;
 using ArchitectureToolkit.Persistence.UserProvisioning;
+using System.Security.Claims;
 
 namespace ArchitectureToolkit.Tests.PersistenceTests.UserProvisioning;
 
@@ -56,8 +56,10 @@ public class UserProvisioningServiceTests
             .ReturnsLazily((IQueryable<Template> q, CancellationToken _) => Task.FromResult(q.ToList()));
     }
 
-    private UserProvisioningService CreateService() =>
-        new(_commandDbContext, _queryDbContext, _unitOfWork, _templateLibrarySource);
+    private UserProvisioningService CreateService()
+    {
+        return new(_commandDbContext, _queryDbContext, _unitOfWork, _templateLibrarySource);
+    }
 
     private static ClaimsPrincipal CreatePrincipal(
         string? subject = "subject-123",

@@ -1,5 +1,5 @@
-using System.Security.Claims;
 using ArchitectureToolkit.Domain.Entities;
+using System.Security.Claims;
 
 namespace ArchitectureToolkit.Application.Abstractions;
 

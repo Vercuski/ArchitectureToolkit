@@ -38,13 +38,16 @@ public readonly record struct VersionNumber
     /// <summary>
     /// Applies a SemVer bump, resetting lower-order components per the rules above.
     /// </summary>
-    public VersionNumber Bump(BumpType bumpType) => bumpType switch
+    public VersionNumber Bump(BumpType bumpType)
     {
-        BumpType.Major => new VersionNumber(Major + 1, 0, 0),
-        BumpType.Minor => new VersionNumber(Major, Minor + 1, 0),
-        BumpType.Patch => new VersionNumber(Major, Minor, Patch + 1),
-        _ => throw new ArgumentOutOfRangeException(nameof(bumpType), bumpType, null)
-    };
+        return bumpType switch
+        {
+            BumpType.Major => new VersionNumber(Major + 1, 0, 0),
+            BumpType.Minor => new VersionNumber(Major, Minor + 1, 0),
+            BumpType.Patch => new VersionNumber(Major, Minor, Patch + 1),
+            _ => throw new ArgumentOutOfRangeException(nameof(bumpType), bumpType, null)
+        };
+    }
 
     public static VersionNumber Parse(string value)
     {
@@ -88,5 +91,8 @@ public readonly record struct VersionNumber
         return true;
     }
 
-    public override string ToString() => $"{Major}.{Minor}.{Patch}";
+    public override string ToString()
+    {
+        return $"{Major}.{Minor}.{Patch}";
+    }
 }

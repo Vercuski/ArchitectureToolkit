@@ -1,6 +1,5 @@
 using ArchitectureToolkit.Infrastructure.Identity;
 using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
 
 namespace ArchitectureToolkit.Tests.InfrastructureTests.Identity;
 

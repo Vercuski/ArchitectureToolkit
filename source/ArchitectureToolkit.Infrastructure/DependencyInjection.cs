@@ -1,7 +1,6 @@
 using ArchitectureToolkit.Infrastructure.Correlation;
 using ArchitectureToolkit.Infrastructure.HealthChecks;
 using ArchitectureToolkit.Infrastructure.Identity;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;

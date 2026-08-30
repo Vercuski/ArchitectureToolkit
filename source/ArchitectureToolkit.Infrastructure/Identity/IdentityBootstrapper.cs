@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using OpenIddict.Abstractions;
 using static OpenIddict.Abstractions.OpenIddictConstants;
@@ -6,7 +7,7 @@ using static OpenIddict.Abstractions.OpenIddictConstants;
 namespace ArchitectureToolkit.Infrastructure.Identity;
 
 /// <summary>
-/// Seeds the three things the self-hosted OpenIddict provider needs to be
+/// Seeds the two things the self-hosted OpenIddict provider needs to be
 /// usable at all on a fresh install, run once at startup alongside the
 /// EF Core migrations (see Program.cs):
 ///
@@ -19,17 +20,18 @@ namespace ArchitectureToolkit.Infrastructure.Identity;
 ///    OpenIddictScope entity — without this, /connect/authorize rejects
 ///    the request outright with "invalid scopes were specified: email",
 ///    even though the client already has permission to request it.
-/// 3. An optional bootstrap admin Identity login
-///    (<see cref="AuthenticationConfiguration.SeedAdminEmail"/>/
-///    <see cref="AuthenticationConfiguration.SeedAdminPassword"/>) —
-///    without this, and with no self-registration UI built yet (ADR-0003
-///    follow-up), nobody could ever sign in to create further Identity
-///    users through the product itself.
+///
+/// The very first Identity login itself is no longer seeded here — see
+/// Pages/Account/Register.cshtml.cs, which lets whoever opens the app
+/// first create it themselves rather than requiring a config-set
+/// SeedAdminEmail/SeedAdminPassword before the app is usable at all.
+/// <see cref="HasAnyIdentityUsersAsync"/> is the single shared check both
+/// that page and Login.cshtml.cs use to decide which one to show.
 ///
 /// Distinct from ADR-0009's still-open question of which domain USER gets
-/// the Architect role — that's decided the first time this seeded login
-/// actually authenticates and IUserProvisioningService (Persistence)
-/// JIT-provisions the corresponding USER row.
+/// the Architect role — that's decided the first time whichever Identity
+/// login gets created actually authenticates and IUserProvisioningService
+/// (Persistence) JIT-provisions the corresponding USER row.
 /// </summary>
 public static class IdentityBootstrapper
 {
@@ -37,7 +39,20 @@ public static class IdentityBootstrapper
     {
         await SeedScopesAsync(services);
         await SeedOAuthClientAsync(services, config);
-        await SeedAdminLoginAsync(services, config);
+    }
+
+    /// <summary>
+    /// True when no Identity login exists yet — the single source of truth
+    /// Login.cshtml.cs and Register.cshtml.cs both check to decide which
+    /// page to show. Uses AnyAsync rather than the synchronous
+    /// <c>Users.Any()</c> pattern acceptable in one-time startup seeding
+    /// above: this runs on every request to those two pages, where a
+    /// blocking sync-over-async call risks thread-pool starvation under
+    /// real load.
+    /// </summary>
+    public static Task<bool> HasAnyIdentityUsersAsync(UserManager<IdentityUser> userManager)
+    {
+        return userManager.Users.AnyAsync();
     }
 
     private static async Task SeedScopesAsync(IServiceProvider services)
@@ -106,37 +121,6 @@ public static class IdentityBootstrapper
         else
         {
             await applicationManager.UpdateAsync(existingApplication, descriptor);
-        }
-    }
-
-    private static async Task SeedAdminLoginAsync(IServiceProvider services, AuthenticationConfiguration config)
-    {
-        if (string.IsNullOrWhiteSpace(config.SeedAdminEmail) || string.IsNullOrWhiteSpace(config.SeedAdminPassword))
-        {
-            return;
-        }
-
-        var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
-
-        // Only ever seeds the very first login on an empty install — never
-        // overwrites or resets an existing admin's credentials on restart.
-        if (userManager.Users.Any())
-        {
-            return;
-        }
-
-        var user = new IdentityUser
-        {
-            UserName = config.SeedAdminEmail,
-            Email = config.SeedAdminEmail,
-            EmailConfirmed = true,
-        };
-
-        var result = await userManager.CreateAsync(user, config.SeedAdminPassword);
-        if (!result.Succeeded)
-        {
-            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
-            throw new InvalidOperationException($"Failed to seed the bootstrap admin login: {errors}");
         }
     }
 }

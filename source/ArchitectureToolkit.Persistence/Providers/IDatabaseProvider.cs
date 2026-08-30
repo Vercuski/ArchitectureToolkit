@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using System.Data;
 
 namespace ArchitectureToolkit.Persistence.Providers;
 
