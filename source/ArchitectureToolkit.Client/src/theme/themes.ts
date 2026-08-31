@@ -36,6 +36,24 @@ const semanticColors = {
   warning: '#FB8C00',
 }
 
+// Vuetify only auto-generates --v-theme-overlay-multiplier as a side effect
+// of a component filling its *background* with one of the theme's own
+// color keys (its `bg-{key}` utility class). Any `variant="text"` component
+// — v-list-item, v-tab, etc. — never fills a background, so that variable
+// is otherwise left undefined wherever such a component shows an
+// active/selected/hover state. That state's highlight opacity is computed
+// as `calc(var(--v-activated-opacity) * var(--v-theme-overlay-multiplier))`,
+// and an undefined second operand makes the whole calc() invalid — which
+// falls back to opacity's initial value of 1 (fully solid) instead of a
+// subtle tint, painting a solid color block over text in that same color.
+// Declaring it explicitly here (via Vuetify's own theme `variables` API)
+// defines it once for the whole app, at the correct value for any light
+// (dark: false) theme — see Vuetify's own genCssVariables, which computes
+// exactly 1 for light-luma colors in a light theme.
+const overlayVariables = {
+  'theme-overlay-multiplier': 1,
+}
+
 // `accent` isn't one of Vuetify's built-in theme keys, but any custom key
 // added here gets the same treatment (a --v-theme-accent CSS variable and
 // an auto-computed contrasting on-accent) — used for primary CTA buttons
@@ -62,6 +80,7 @@ export const THEME_DEFINITIONS: Record<ThemeName, ThemeDefinition> = {
       'secondary-darken-1': '#475569',
       accent: '#1E3A5F',
     },
+    variables: overlayVariables,
   },
   indigoTeal: {
     dark: false,
@@ -77,6 +96,7 @@ export const THEME_DEFINITIONS: Record<ThemeName, ThemeDefinition> = {
       'secondary-darken-1': '#0F766E',
       accent: '#4338CA',
     },
+    variables: overlayVariables,
   },
   charcoalAmber: {
     dark: false,
@@ -92,6 +112,7 @@ export const THEME_DEFINITIONS: Record<ThemeName, ThemeDefinition> = {
       'secondary-darken-1': '#3F3F46',
       accent: '#F59E0B',
     },
+    variables: overlayVariables,
   },
   forestSlate: {
     dark: false,
@@ -107,6 +128,7 @@ export const THEME_DEFINITIONS: Record<ThemeName, ThemeDefinition> = {
       'secondary-darken-1': '#343A40',
       accent: '#C9A227',
     },
+    variables: overlayVariables,
   },
 }
 

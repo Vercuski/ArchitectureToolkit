@@ -17,6 +17,7 @@ const members = ref<ProjectMemberDto[]>([])
 const documents = ref<ProjectDocumentSummaryDto[]>([])
 const loading = ref(true)
 const loadError = ref<string | null>(null)
+const activeTab = ref<'documents' | 'members'>('documents')
 
 // The backend has no concept of "my own user id" the SPA can read
 // directly from the token (that mapping only exists server-side via
@@ -121,102 +122,113 @@ onMounted(load)
     <v-alert v-if="loadError" type="error" :text="loadError" />
 
     <template v-if="!loading && !loadError && project">
-      <h1 class="text-h5 mb-4">{{ project.name }}</h1>
+      <h1 class="text-h5 mb-4">Project: {{ project.name }}</h1>
 
-      <v-card title="Documents" class="mb-4">
-        <v-btn
-          v-if="canEditDocuments"
-          id="new-document-button"
-          color="accent"
-          prepend-icon="mdi-plus"
-          class="ma-4 mb-0"
-          :to="`/projects/${projectId}/documents/new`"
-        >
-          New Document
-        </v-btn>
+      <v-card>
+        <v-tabs v-model="activeTab" color="primary">
+          <v-tab value="documents" prepend-icon="mdi-file-document-multiple-outline">Documents</v-tab>
+          <v-tab value="members" prepend-icon="mdi-account-multiple-outline">Members</v-tab>
+        </v-tabs>
 
-        <v-card-text v-if="documents.length === 0">
-          <span class="text-medium-emphasis">No documents yet.</span>
-        </v-card-text>
-        <v-list v-else lines="one">
-          <v-list-item
-            v-for="doc in documents"
-            :key="doc.id"
-            :title="doc.title"
-            :subtitle="`v${doc.currentVersion}`"
-            prepend-icon="mdi-file-document-edit-outline"
-            @click="router.push(`/documents/${doc.id}`)"
-          />
-        </v-list>
-      </v-card>
+        <v-divider />
 
-      <v-card title="Members">
-        <v-alert v-if="rowError" type="error" :text="rowError" class="ma-4" />
+        <v-window v-model="activeTab">
+          <v-window-item value="documents">
+            <v-btn
+              v-if="canEditDocuments"
+              id="new-document-button"
+              color="accent"
+              prepend-icon="mdi-plus"
+              class="ma-4 mb-0"
+              :to="`/projects/${projectId}/documents/new`"
+            >
+              New Document
+            </v-btn>
 
-        <v-table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th v-if="isOwner" class="text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="member in members" :key="member.userId">
-              <td>{{ member.userName }}</td>
-              <td>{{ member.userEmail }}</td>
-              <td>
+            <v-card-text v-if="documents.length === 0">
+              <span class="text-medium-emphasis">No documents yet.</span>
+            </v-card-text>
+            <v-list v-else lines="one">
+              <v-list-item
+                v-for="doc in documents"
+                :key="doc.id"
+                :title="doc.title"
+                :subtitle="`v${doc.currentVersion}`"
+                prepend-icon="mdi-file-document-edit-outline"
+                @click="router.push(`/documents/${doc.id}`)"
+              />
+            </v-list>
+          </v-window-item>
+
+          <v-window-item value="members">
+            <v-alert v-if="rowError" type="error" :text="rowError" class="ma-4" />
+
+            <v-table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th v-if="isOwner" class="text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="member in members" :key="member.userId">
+                  <td>{{ member.userName }}</td>
+                  <td>{{ member.userEmail }}</td>
+                  <td>
+                    <v-select
+                      v-if="isOwner"
+                      :model-value="member.role"
+                      :items="roleOptions"
+                      density="compact"
+                      hide-details
+                      variant="underlined"
+                      style="max-width: 140px"
+                      :disabled="rowBusy === member.userId"
+                      @update:model-value="(value: unknown) => changeRole(member, value as ProjectRole)"
+                    />
+                    <span v-else>{{ member.role }}</span>
+                  </td>
+                  <td v-if="isOwner" class="text-right">
+                    <v-btn
+                      icon="mdi-delete-outline"
+                      variant="text"
+                      size="small"
+                      :loading="rowBusy === member.userId"
+                      @click="removeMember(member)"
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </v-table>
+
+            <v-card-text v-if="isOwner">
+              <v-divider class="mb-4" />
+              <v-alert v-if="addError" type="error" :text="addError" class="mb-4" />
+              <div class="d-flex align-center ga-2">
+                <v-text-field
+                  id="add-member-user-id"
+                  v-model="addUserId"
+                  label="User ID"
+                  hint="Ask the person to share their User ID from their account page"
+                  persistent-hint
+                  density="compact"
+                  hide-details="auto"
+                />
                 <v-select
-                  v-if="isOwner"
-                  :model-value="member.role"
+                  v-model="addRole"
                   :items="roleOptions"
+                  label="Role"
                   density="compact"
                   hide-details
-                  variant="underlined"
                   style="max-width: 140px"
-                  :disabled="rowBusy === member.userId"
-                  @update:model-value="(value: unknown) => changeRole(member, value as ProjectRole)"
                 />
-                <span v-else>{{ member.role }}</span>
-              </td>
-              <td v-if="isOwner" class="text-right">
-                <v-btn
-                  icon="mdi-delete-outline"
-                  variant="text"
-                  size="small"
-                  :loading="rowBusy === member.userId"
-                  @click="removeMember(member)"
-                />
-              </td>
-            </tr>
-          </tbody>
-        </v-table>
-
-        <v-card-text v-if="isOwner">
-          <v-divider class="mb-4" />
-          <v-alert v-if="addError" type="error" :text="addError" class="mb-4" />
-          <div class="d-flex align-center ga-2">
-            <v-text-field
-              id="add-member-user-id"
-              v-model="addUserId"
-              label="User ID"
-              hint="Ask the person to share their User ID from their account page"
-              persistent-hint
-              density="compact"
-              hide-details="auto"
-            />
-            <v-select
-              v-model="addRole"
-              :items="roleOptions"
-              label="Role"
-              density="compact"
-              hide-details
-              style="max-width: 140px"
-            />
-            <v-btn id="confirm-add-member" color="accent" :loading="addBusy" @click="addMember">Add</v-btn>
-          </div>
-        </v-card-text>
+                <v-btn id="confirm-add-member" color="accent" :loading="addBusy" @click="addMember">Add</v-btn>
+              </div>
+            </v-card-text>
+          </v-window-item>
+        </v-window>
       </v-card>
     </template>
 
