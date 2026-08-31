@@ -3,7 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { templatesApi } from '@/api/templates'
 import { useCurrentUserStore } from '@/stores/currentUser'
-import MarkdownView from '@/components/MarkdownView.vue'
+import ToastUiViewer from '@/components/ToastUiViewer.vue'
 import type { TemplateDetailDto, TemplateRevisionDetailDto, TemplateRevisionDto } from '@/api/types'
 
 const route = useRoute()
@@ -70,7 +70,7 @@ onMounted(() => {
 
       <v-card class="mb-4">
         <v-card-text>
-          <MarkdownView :source="template.content" />
+          <ToastUiViewer :source="template.content" />
         </v-card-text>
       </v-card>
 
@@ -102,7 +102,7 @@ onMounted(() => {
     <v-dialog :model-value="!!viewRevision" max-width="640" @update:model-value="viewRevision = null">
       <v-card v-if="viewRevision" :title="`Version ${viewRevision.version}`">
         <v-card-text>
-          <MarkdownView :source="viewRevision.content" />
+          <ToastUiViewer :source="viewRevision.content" />
         </v-card-text>
         <v-card-actions>
           <v-spacer />

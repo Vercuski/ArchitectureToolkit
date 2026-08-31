@@ -5,7 +5,7 @@ import { documentsApi } from '@/api/documents'
 import { projectsApi } from '@/api/projects'
 import { categoriesApi } from '@/api/categories'
 import { useAuthStore } from '@/stores/auth'
-import MarkdownView from '@/components/MarkdownView.vue'
+import ToastUiViewer from '@/components/ToastUiViewer.vue'
 import type { CategoryDto, DocumentRevisionDetailDto, DocumentRevisionDto, ProjectDocumentDetailDto } from '@/api/types'
 
 const route = useRoute()
@@ -103,7 +103,7 @@ onMounted(load)
 
       <v-card class="mb-4">
         <v-card-text>
-          <MarkdownView :source="document.content" />
+          <ToastUiViewer :source="document.content" />
         </v-card-text>
       </v-card>
 
@@ -135,7 +135,7 @@ onMounted(load)
     <v-dialog :model-value="!!viewRevision" max-width="640" @update:model-value="viewRevision = null">
       <v-card v-if="viewRevision" :title="`Version ${viewRevision.version}`">
         <v-card-text>
-          <MarkdownView :source="viewRevision.content" />
+          <ToastUiViewer :source="viewRevision.content" />
         </v-card-text>
         <v-card-actions>
           <v-spacer />
