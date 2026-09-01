@@ -25,6 +25,17 @@ public class LoginModel(SignInManager<IdentityUser> signInManager, UserManager<I
     [BindProperty(SupportsGet = true)]
     public string? ReturnUrl { get; set; }
 
+    /// <summary>
+    /// Populated by AuthorizationController.Authorize() when it redirects
+    /// here because a previously-valid Identity session could no longer be
+    /// resolved to an actual user (e.g. the account was deleted, or the
+    /// database was reset/restored, since the cookie was issued) — surfaced
+    /// via the same ModelState error block the login POST itself uses, so
+    /// no separate markup is needed for it.
+    /// </summary>
+    [BindProperty(SupportsGet = true)]
+    public string? Error { get; set; }
+
     public async Task<IActionResult> OnGetAsync()
     {
         // Nobody could possibly have credentials to enter yet — send the
@@ -33,6 +44,11 @@ public class LoginModel(SignInManager<IdentityUser> signInManager, UserManager<I
         if (!await IdentityBootstrapper.HasAnyIdentityUsersAsync(userManager))
         {
             return RedirectToPage("/Account/Register", new { ReturnUrl });
+        }
+
+        if (!string.IsNullOrWhiteSpace(Error))
+        {
+            ModelState.AddModelError(string.Empty, Error);
         }
 
         return Page();

@@ -41,13 +41,7 @@ public sealed class AuthorizationController(
         var authenticateResult = await HttpContext.AuthenticateAsync(IdentityConstants.ApplicationScheme);
         if (!authenticateResult.Succeeded || authenticateResult.Principal.Identity is not { IsAuthenticated: true })
         {
-            return Challenge(
-                authenticationSchemes: [IdentityConstants.ApplicationScheme],
-                properties: new AuthenticationProperties
-                {
-                    RedirectUri = Request.PathBase + Request.Path + QueryString.Create(
-                        Request.HasFormContentType ? [.. Request.Form] : Request.Query.ToList())
-                });
+            return ChallengeToLogin();
         }
 
         // Exists so an unknown/removed client fails clearly here rather
@@ -55,10 +49,26 @@ public sealed class AuthorizationController(
         _ = await applicationManager.FindByClientIdAsync(request.ClientId ?? string.Empty)
             ?? throw new InvalidOperationException("The specified client is unknown.");
 
-        var userId = signInManager.UserManager.GetUserId(authenticateResult.Principal)
-            ?? throw new InvalidOperationException("Unable to resolve the signed-in user's id.");
-        var user = await signInManager.UserManager.FindByIdAsync(userId)
-            ?? throw new InvalidOperationException("The signed-in user no longer exists.");
+        // The Identity cookie authenticated successfully, but the account
+        // it points at may no longer be resolvable — e.g. the user row was
+        // deleted, or the database was reset/restored, after the cookie
+        // was issued. Previously this fell through to an unhandled
+        // InvalidOperationException — an unstyled 500 the browser had no
+        // way to recover from. Instead, treat it the same as "no session
+        // at all": clear the stale cookie and send the browser back to the
+        // login page with an explanatory message, so the person can simply
+        // sign in again rather than being stuck on a crashed request.
+        var userId = signInManager.UserManager.GetUserId(authenticateResult.Principal);
+        var user = userId is null ? null : await signInManager.UserManager.FindByIdAsync(userId);
+        if (user is null)
+        {
+            await signInManager.SignOutAsync();
+            return RedirectToPage("/Account/Login", new
+            {
+                ReturnUrl = BuildAuthorizeReturnUrl(),
+                Error = "Your session is no longer valid. Please sign in again.",
+            });
+        }
 
         var identity = new ClaimsIdentity(
             authenticationType: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
@@ -160,4 +170,19 @@ public sealed class AuthorizationController(
                 break;
         }
     }
+
+    /// <summary>
+    /// Challenges the Identity cookie scheme, sending the browser to the
+    /// login page with a ReturnUrl that comes straight back to this exact
+    /// /connect/authorize request (same query string/form body) once
+    /// authenticated.
+    /// </summary>
+    private IActionResult ChallengeToLogin() =>
+        Challenge(
+            authenticationSchemes: [IdentityConstants.ApplicationScheme],
+            properties: new AuthenticationProperties { RedirectUri = BuildAuthorizeReturnUrl() });
+
+    private string BuildAuthorizeReturnUrl() =>
+        Request.PathBase + Request.Path + QueryString.Create(
+            Request.HasFormContentType ? [.. Request.Form] : Request.Query.ToList());
 }

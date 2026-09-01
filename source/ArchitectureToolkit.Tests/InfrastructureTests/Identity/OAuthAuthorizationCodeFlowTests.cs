@@ -168,6 +168,117 @@ public class OAuthAuthorizationCodeFlowTests
             () => refreshResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult());
     }
 
+    [Test]
+    public async Task Authorize_Should_RedirectToLoginWithError_When_SignedInUsersAccountNoLongerExists()
+    {
+        var email = $"stale-user-{Guid.NewGuid():N}@architecturetoolkit.local";
+        var clientId = $"stale-user-client-{Guid.NewGuid():N}";
+        const string password = "Correct-Horse-Battery-Staple-9!";
+
+        var factory = new WebApplicationFactory<ApiAssemblyMarker>()
+            .WithWebHostBuilder(builder => builder.UseSetting(
+                "Authentication:RedirectUris:0", RedirectUri));
+
+        string identityUserId;
+        using (var scope = factory.Services.CreateScope())
+        {
+            var authConfig = new AuthenticationConfiguration
+            {
+                ClientId = clientId,
+                Audience = Audience,
+                RedirectUris = [RedirectUri],
+            };
+            await IdentityBootstrapper.SeedAsync(scope.ServiceProvider, authConfig);
+
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+            var user = new IdentityUser { UserName = email, Email = email, EmailConfirmed = true };
+            var createResult = await userManager.CreateAsync(user, password);
+            Assert.That(createResult.Succeeded, Is.True,
+                () => string.Join("; ", createResult.Errors.Select(e => e.Description)));
+            identityUserId = user.Id;
+        }
+
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false,
+        });
+
+        var authorizeUrl = "/connect/authorize" + QueryString(new()
+        {
+            ["client_id"] = clientId,
+            ["redirect_uri"] = RedirectUri,
+            ["response_type"] = "code",
+            ["scope"] = $"openid offline_access {Audience}",
+            ["code_challenge"] = ComputeS256Challenge(GeneratePkceVerifier()),
+            ["code_challenge_method"] = "S256",
+            ["state"] = Guid.NewGuid().ToString("N"),
+        });
+
+        // Same login-through-cookie sequence as the happy-path test above,
+        // just to obtain a valid, signed-in HttpClient.
+        var authorizeRequest = new HttpRequestMessage(HttpMethod.Get, authorizeUrl);
+        authorizeRequest.Headers.Add("Accept", "text/html");
+        var step1 = await client.SendAsync(authorizeRequest);
+        var loginUrl = step1.Headers.Location!.OriginalString;
+
+        var loginPageHtml = await client.GetStringAsync(loginUrl);
+        var tokenMatch = Regex.Match(
+            loginPageHtml, "name=\"__RequestVerificationToken\"[^>]*\\bvalue=\"([^\"]+)\"");
+        var antiforgeryToken = tokenMatch.Groups[1].Value;
+        var returnUrlMatch = Regex.Match(
+            loginPageHtml, "name=\"ReturnUrl\"[^>]*\\bvalue=\"([^\"]*)\"");
+        var returnUrl = WebUtility.HtmlDecode(returnUrlMatch.Groups[1].Value);
+
+        var loginResponse = await client.PostAsync(
+            "/Account/Login",
+            new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["Email"] = email,
+                ["Password"] = password,
+                ["ReturnUrl"] = returnUrl,
+                ["__RequestVerificationToken"] = antiforgeryToken,
+            }));
+        Assert.That(loginResponse.StatusCode, Is.EqualTo(HttpStatusCode.Found), "expected redirect after login");
+
+        // The cookie is now valid and carries this user's id — but delete
+        // the underlying account before the browser's next hop, simulating
+        // an admin removing the account (or a database restore) between
+        // login and the browser completing its round trip back to
+        // /connect/authorize.
+        using (var scope = factory.Services.CreateScope())
+        {
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+            var user = await userManager.FindByIdAsync(identityUserId);
+            Assert.That(user, Is.Not.Null);
+            var deleteResult = await userManager.DeleteAsync(user!);
+            Assert.That(deleteResult.Succeeded, Is.True);
+        }
+
+        // Follow back to /connect/authorize with the now-stale cookie.
+        // Previously this threw an unhandled InvalidOperationException (an
+        // unstyled 500 the browser had no way to recover from). It should
+        // instead redirect back to the login page with an explanatory
+        // error, exactly like an unauthenticated request would.
+        var authorizeAgain = await client.GetAsync(loginResponse.Headers.Location);
+
+        Assert.That(authorizeAgain.StatusCode, Is.EqualTo(HttpStatusCode.Found),
+            "a stale session should redirect back to login, not throw");
+        var redirectLocation = authorizeAgain.Headers.Location!.OriginalString;
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(redirectLocation, Does.Contain("/Account/Login"));
+            Assert.That(redirectLocation, Does.Contain("Error="));
+        }
+
+        // The stale cookie must actually have been cleared — a follow-up
+        // request should render the login page (not loop back into the
+        // same failure), showing the explanatory message.
+        var loginPageAfter = await client.GetAsync(redirectLocation);
+        Assert.That(loginPageAfter.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var loginPageAfterHtml = await loginPageAfter.Content.ReadAsStringAsync();
+        Assert.That(loginPageAfterHtml, Does.Contain("Your session is no longer valid"));
+    }
+
     private static string GeneratePkceVerifier()
     {
         var bytes = RandomNumberGenerator.GetBytes(32);
