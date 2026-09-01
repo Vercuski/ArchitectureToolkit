@@ -1,5 +1,5 @@
 ---
-title: "RFC: {Title}"
+title: RFC: {Title}
 status: draft
 owner: TBD
 version: 1.0.0

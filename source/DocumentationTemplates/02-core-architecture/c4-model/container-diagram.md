@@ -1,5 +1,5 @@
 ---
-title: "C4 Model — Level 2: Container Diagram"
+title: C4 Model — Level 2: Container Diagram
 status: draft
 owner: TBD
 version: 1.0.0

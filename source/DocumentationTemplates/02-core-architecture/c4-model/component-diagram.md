@@ -1,5 +1,5 @@
 ---
-title: "C4 Model — Level 3: Component Diagram"
+title: C4 Model — Level 3: Component Diagram
 status: draft
 owner: TBD
 version: 1.0.0

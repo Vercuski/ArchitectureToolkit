@@ -1,5 +1,5 @@
 ---
-title: "ICD: {System A} <-> {System B}"
+title: ICD: {System A} <-> {System B}
 status: draft
 owner: TBD
 version: 1.0.0

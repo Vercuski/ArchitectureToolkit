@@ -104,6 +104,33 @@ describe('CreateDocumentView', () => {
     expect(listTemplatesMock).toHaveBeenCalled()
   })
 
+  it('sorts the Category dropdown alphabetically, independent of API order', async () => {
+    listCategoriesMock.mockResolvedValue([
+      { id: 'category-2', code: 'REQ', name: 'Requirements' },
+      { id: 'category-1', code: 'ADR', name: 'Architecture Decisions' },
+    ])
+    const wrapper = await mountView()
+    const vm = wrapper.vm as unknown as { sortedCategories: CategoryDto[] }
+
+    expect(vm.sortedCategories.map((c) => c.name)).toEqual(['Architecture Decisions', 'Requirements'])
+  })
+
+  it('sorts the Template dropdown alphabetically once a category is selected', async () => {
+    listTemplatesMock.mockResolvedValue([
+      { id: 'template-2', categoryId: 'category-1', name: 'Zeta Template', currentVersion: '1.0.0' },
+      { id: 'template-1', categoryId: 'category-1', name: 'Alpha Template', currentVersion: '1.0.0' },
+    ])
+    const wrapper = await mountView()
+    const vm = wrapper.vm as unknown as {
+      selectedCategoryId: string | null
+      filteredTemplates: TemplateSummaryDto[]
+    }
+    vm.selectedCategoryId = 'category-1'
+    await wrapper.vm.$nextTick()
+
+    expect(vm.filteredTemplates.map((t) => t.name)).toEqual(['Alpha Template', 'Zeta Template'])
+  })
+
   it("prefills the editor and category from the selected template's detail", async () => {
     const wrapper = await mountView()
     const vm = wrapper.vm as unknown as { onTemplateSelected: (id: string | null) => Promise<void> }

@@ -1,5 +1,5 @@
 ---
-title: "Incident Postmortem: {Incident Name}"
+title: Incident Postmortem: {Incident Name}
 status: draft
 owner: TBD
 version: 1.0.0

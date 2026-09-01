@@ -1,5 +1,5 @@
 ---
-title: "ADR-0001: Record Architecture Decisions"
+title: ADR-0001: Record Architecture Decisions
 status: Accepted
 date: TBD
 deciders: TBD

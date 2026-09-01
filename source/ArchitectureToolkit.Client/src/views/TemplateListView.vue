@@ -27,7 +27,12 @@ const groupedTemplates = computed(() => {
     if (!groups.has(name)) groups.set(name, [])
     groups.get(name)!.push(template)
   }
-  return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b))
+  return [...groups.entries()]
+    .map(([category, items]): [string, TemplateSummaryDto[]] => [
+      category,
+      [...items].sort((a, b) => a.name.localeCompare(b.name)),
+    ])
+    .sort(([a], [b]) => a.localeCompare(b))
 })
 
 const createDialogOpen = ref(false)

@@ -1,5 +1,5 @@
 ---
-title: "Architecture Exception Request: {Short Title}"
+title: Architecture Exception Request: {Short Title}
 status: draft
 owner: TBD
 version: 1.0.0

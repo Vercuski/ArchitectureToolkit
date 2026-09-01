@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { projectsApi } from '@/api/projects'
 import { ApiError } from '@/api/httpClient'
@@ -10,6 +10,10 @@ const router = useRouter()
 const projects = ref<ProjectDto[]>([])
 const loading = ref(true)
 const loadError = ref<string | null>(null)
+
+const sortedProjects = computed(() =>
+  [...projects.value].sort((a, b) => a.name.localeCompare(b.name)),
+)
 
 const createDialogOpen = ref(false)
 const newProjectName = ref('')
@@ -70,7 +74,7 @@ onMounted(loadProjects)
 
     <v-list v-else lines="one">
       <v-list-item
-        v-for="project in projects"
+        v-for="project in sortedProjects"
         :key="project.id"
         :title="project.name"
         prepend-icon="mdi-folder-outline"

@@ -1,5 +1,5 @@
 ---
-title: "Runbook: {Service/Scenario Name}"
+title: Runbook: {Service/Scenario Name}
 status: draft
 owner: TBD
 version: 1.0.0

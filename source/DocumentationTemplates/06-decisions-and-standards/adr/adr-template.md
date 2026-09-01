@@ -1,5 +1,5 @@
 ---
-title: "ADR-XXXX: {Short Title}"
+title: ADR-XXXX: {Short Title}
 status: draft
 owner: TBD
 version: 1.0.0

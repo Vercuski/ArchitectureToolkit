@@ -18,6 +18,10 @@ const templates = ref<TemplateSummaryDto[]>([])
 const loading = ref(true)
 const loadError = ref<string | null>(null)
 
+const sortedCategories = computed(() =>
+  [...categories.value].sort((a, b) => a.name.localeCompare(b.name)),
+)
+
 const selectedCategoryId = ref<string | null>(null)
 const selectedTemplateId = ref<string | null>(null)
 // Cached from the template fetch that already ran to prefill the editor —
@@ -43,7 +47,9 @@ const cancelConfirmOpen = ref(false)
 // the two dropdowns being paired rather than independent.
 const filteredTemplates = computed(() =>
   selectedCategoryId.value
-    ? templates.value.filter((t) => t.categoryId === selectedCategoryId.value)
+    ? templates.value
+        .filter((t) => t.categoryId === selectedCategoryId.value)
+        .sort((a, b) => a.name.localeCompare(b.name))
     : [],
 )
 
@@ -172,7 +178,7 @@ onBeforeUnmount(() => {
           <v-select
             id="new-document-category"
             v-model="selectedCategoryId"
-            :items="categories"
+            :items="sortedCategories"
             item-title="name"
             item-value="id"
             label="Category"

@@ -1,5 +1,5 @@
 ---
-title: "C4 Model — Level 1: System Context"
+title: C4 Model — Level 1: System Context
 status: draft
 owner: TBD
 version: 1.0.0

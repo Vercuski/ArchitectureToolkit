@@ -32,6 +32,19 @@ vi.mock('@/api/projects', () => ({ projectsApi: { listMembers: listMembersMock }
 const listCategoriesMock = vi.fn()
 vi.mock('@/api/categories', () => ({ categoriesApi: { list: listCategoriesMock } }))
 
+// Same reasoning as CreateDocumentView's Editor mock: @toast-ui/editor's
+// own internals aren't this component's code to verify, and the real
+// Viewer relies on browser APIs jsdom doesn't fully provide. A real
+// class (not an arrow-function mock) since the component calls `new
+// Viewer(...)`.
+const setMarkdownMock = vi.fn()
+const destroyMock = vi.fn()
+class MockViewer {
+  setMarkdown = setMarkdownMock
+  destroy = destroyMock
+}
+vi.mock('@toast-ui/editor/dist/toastui-editor-viewer', () => ({ default: MockViewer }))
+
 const { useAuthStore } = await import('@/stores/auth')
 const { default: DocumentDetailView } = await import('../DocumentDetailView.vue')
 
@@ -101,6 +114,8 @@ describe('DocumentDetailView', () => {
     listCategoriesMock.mockReset().mockResolvedValue(categories())
     listMembersMock.mockReset().mockResolvedValue([member('Editor')])
     getRevisionMock.mockReset()
+    setMarkdownMock.mockReset()
+    destroyMock.mockReset()
   })
 
   afterEach(() => {
