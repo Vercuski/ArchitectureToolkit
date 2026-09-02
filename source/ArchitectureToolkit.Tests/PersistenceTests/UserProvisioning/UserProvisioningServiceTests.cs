@@ -50,6 +50,8 @@ public class UserProvisioningServiceTests
             .ReturnsLazily((IQueryable<User> q, CancellationToken _) => Task.FromResult(q.SingleOrDefault()));
         A.CallTo(() => _queryDbContext.SingleOrDefaultAsync(A<IQueryable<UserIdentity>>._, A<CancellationToken>._))
             .ReturnsLazily((IQueryable<UserIdentity> q, CancellationToken _) => Task.FromResult(q.SingleOrDefault()));
+        A.CallTo(() => _queryDbContext.ToListAsync(A<IQueryable<UserIdentity>>._, A<CancellationToken>._))
+            .ReturnsLazily((IQueryable<UserIdentity> q, CancellationToken _) => Task.FromResult(q.ToList()));
         A.CallTo(() => _queryDbContext.ToListAsync(A<IQueryable<User>>._, A<CancellationToken>._))
             .ReturnsLazily((IQueryable<User> q, CancellationToken _) => Task.FromResult(q.ToList()));
         A.CallTo(() => _queryDbContext.ToListAsync(A<IQueryable<Template>>._, A<CancellationToken>._))
@@ -320,5 +322,100 @@ public class UserProvisioningServiceTests
             CreatePrincipal(issuer: "https://accounts.example-idp.com/tenant/abc"));
 
         Assert.That(capturedIdentity!.ProviderLabel, Is.EqualTo("accounts.example-idp.com"));
+    }
+
+    // ADR-0018: CreateUserCommand creates a USER row directly (email +
+    // architect-chosen role), unlinked to any USER_IDENTITY, before the
+    // invited person has ever logged in. These cover the branch that
+    // claims that row on their first real login instead of creating a
+    // duplicate.
+
+    [Test]
+    public async Task Handle_Should_AdoptPendingInvite_When_UnlinkedUserExistsWithMatchingEmail()
+    {
+        var pendingInvite = new User("scott", "scott@example.com", SystemRole.Architect);
+        Seed(users: [pendingInvite]);
+
+        var result = await CreateService().ResolveOrProvisionUserAsync(CreatePrincipal(email: "scott@example.com"));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(result.Value, Is.EqualTo(pendingInvite));
+        }
+        A.CallTo(() => _commandDbContext.Insert(A<User>._)).MustNotHaveHappened();
+        A.CallTo(() => _commandDbContext.Insert(A<UserIdentity>._)).MustHaveHappenedOnceExactly();
+        A.CallTo(() => _transaction.CommitAsync(A<CancellationToken>._)).MustHaveHappenedOnceExactly();
+    }
+
+    [Test]
+    public async Task Handle_Should_PreserveArchitectRole_When_AdoptingPendingInvite_EvenThoughNotFirstUser()
+    {
+        // A second user already exists (so ordinary JIT-provisioning
+        // would default to Contributor) — proves the pre-assigned role
+        // survives adoption rather than being recomputed.
+        var otherArchitect = new User("Other Architect", "other@example.com", SystemRole.Architect);
+        var pendingInvite = new User("scott", "scott@example.com", SystemRole.Architect);
+        Seed(users: [otherArchitect, pendingInvite]);
+
+        var result = await CreateService().ResolveOrProvisionUserAsync(CreatePrincipal(email: "scott@example.com"));
+
+        Assert.That(result.Value!.SystemRole, Is.EqualTo(SystemRole.Architect));
+    }
+
+    [Test]
+    public async Task Handle_Should_LinkAdoptedIdentity_UsingThisLogins_RealIssuerAndSubject()
+    {
+        // The whole point of adopting by email instead of pre-linking at
+        // invite time: the USER_IDENTITY created here must reflect
+        // whatever issuer/subject this actual login presents, not a
+        // guess made when the invite was sent.
+        var pendingInvite = new User("scott", "scott@example.com", SystemRole.Contributor);
+        Seed(users: [pendingInvite]);
+        UserIdentity? capturedIdentity = null;
+        A.CallTo(() => _commandDbContext.Insert(A<UserIdentity>._)).Invokes((UserIdentity i) => capturedIdentity = i);
+
+        await CreateService().ResolveOrProvisionUserAsync(CreatePrincipal(
+            email: "scott@example.com", subject: "real-subject-456", issuer: "https://real-issuer.example.com"));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(capturedIdentity!.UserId, Is.EqualTo(pendingInvite.Id));
+            Assert.That(capturedIdentity.ExternalSubjectId, Is.EqualTo("real-subject-456"));
+            Assert.That(capturedIdentity.Issuer, Is.EqualTo("https://real-issuer.example.com"));
+        }
+    }
+
+    [Test]
+    public async Task Handle_Should_NotAdopt_When_MatchingEmailUserAlreadyHasALinkedIdentity()
+    {
+        // A different login already claimed this email — must not be
+        // silently merged with whoever's logging in now, even though the
+        // email string matches. Falls through to ordinary JIT-provisioning
+        // (a second, distinct USER row), same as if no USER existed at all.
+        var alreadyClaimedUser = new User("Someone Else", "shared@example.com", SystemRole.Contributor);
+        var existingLink = new UserIdentity(
+            alreadyClaimedUser.Id, "https://other-issuer.example.com", "other-subject", "Other IdP");
+        Seed(users: [alreadyClaimedUser], identities: [existingLink]);
+
+        var result = await CreateService().ResolveOrProvisionUserAsync(CreatePrincipal(email: "shared@example.com"));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(result.Value!.Id, Is.Not.EqualTo(alreadyClaimedUser.Id));
+        }
+        A.CallTo(() => _commandDbContext.Insert(A<User>._)).MustHaveHappenedOnceExactly();
+    }
+
+    [Test]
+    public async Task Handle_Should_NotSeedTemplateLibrary_When_AdoptingPendingInvite()
+    {
+        var pendingInvite = new User("scott", "scott@example.com", SystemRole.Architect);
+        Seed(users: [pendingInvite]);
+
+        await CreateService().ResolveOrProvisionUserAsync(CreatePrincipal(email: "scott@example.com"));
+
+        A.CallTo(() => _templateLibrarySource.GetCategoriesAsync(A<CancellationToken>._)).MustNotHaveHappened();
     }
 }

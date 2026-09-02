@@ -4,6 +4,7 @@ using ArchitectureToolkit.Infrastructure.Exceptions;
 using ArchitectureToolkit.Infrastructure.Identity;
 using ArchitectureToolkit.Persistence;
 using ArchitectureToolkit.Persistence.Contexts;
+using ArchitectureToolkit.Presentation.API.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Scalar.AspNetCore;
@@ -25,6 +26,7 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.AddApplicationRegistration();
 builder.AddPersistenceRegistrations();
 builder.AddInfrastructureRegistration();
+builder.AddIdentityAccountServices();
 
 builder.Services.AddEndpointsApiExplorer();
 

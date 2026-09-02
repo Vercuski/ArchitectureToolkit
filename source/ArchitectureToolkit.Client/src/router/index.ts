@@ -6,6 +6,8 @@ import ProjectDetailView from '../views/ProjectDetailView.vue'
 import TemplateListView from '../views/TemplateListView.vue'
 import TemplateDetailView from '../views/TemplateDetailView.vue'
 import DocumentDetailView from '../views/DocumentDetailView.vue'
+import UserManagementView from '../views/UserManagementView.vue'
+import SetPasswordView from '../views/SetPasswordView.vue'
 import { useAuthStore } from '@/stores/auth'
 
 declare module 'vue-router' {
@@ -90,6 +92,17 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      // Architect-only (ADR-0017), enforced server-side (ListUsersQuery
+      // returns Forbidden for a non-architect, which the view surfaces as
+      // a plain load error) — no router-level role gate, matching
+      // TemplateListView's own precedent of gating create-actions in the
+      // view rather than the route itself.
+      path: '/admin/users',
+      name: 'user-management',
+      component: UserManagementView,
+      meta: { requiresAuth: true },
+    },
+    {
       // Must match Authentication:RedirectUris on the API — see
       // src/auth/oidcConfig.ts. Deliberately not requiresAuth: this route
       // is what completes the login process, so it must be reachable
@@ -97,6 +110,16 @@ const router = createRouter({
       path: '/auth/callback',
       name: 'auth-callback',
       component: CallbackView,
+    },
+    {
+      // ADR-0018: what the New User invite link (and, since it reuses
+      // ASP.NET Core Identity's password-reset token, a future
+      // forgot-password link) points at. Deliberately not requiresAuth,
+      // same reasoning as /auth/callback — this must be reachable by
+      // someone who has no session yet.
+      path: '/set-password',
+      name: 'set-password',
+      component: SetPasswordView,
     },
   ],
 })

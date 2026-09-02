@@ -75,6 +75,20 @@ services:
       Authentication__Authority: ""
       Authentication__KeysDirectory: /app/keys
       Authentication__KeysPassword: ${AUTH_KEYS_PASSWORD}
+
+      # ADR-0018: optional. Left blank (the default below), the User
+      # Management tab's "New User" action sends no email — it falls back
+      # to showing a copyable invite link instead, which is fine for a
+      # single-operator/small-team install. Set these to enable real SMTP
+      # delivery via any provider (Gmail app password, Office365,
+      # Postmark/SES SMTP relay, a local Mailpit/MailHog for testing).
+      Smtp__Host: ${SMTP_HOST:-}
+      Smtp__Port: ${SMTP_PORT:-587}
+      Smtp__Username: ${SMTP_USERNAME:-}
+      Smtp__Password: ${SMTP_PASSWORD:-}
+      Smtp__FromAddress: ${SMTP_FROM_ADDRESS:-no-reply@architecturetoolkit.local}
+      Smtp__FromName: ${SMTP_FROM_NAME:-ArchitectureToolkit}
+      Smtp__UseSslOnConnect: ${SMTP_USE_SSL_ON_CONNECT:-false}
     volumes:
       # Persists the self-hosted OpenIddict signing/encryption certificates
       # (PersistedCertificateProvisioner) across restarts/redeploys, so

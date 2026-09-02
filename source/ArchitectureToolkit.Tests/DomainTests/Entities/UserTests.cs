@@ -20,6 +20,14 @@ public class UserTests
         }
     }
 
+    [Test]
+    public void Constructor_Should_DefaultIsActiveToTrue()
+    {
+        var user = new User("Scott Vercuski", "scott@example.com", SystemRole.Contributor);
+
+        Assert.That(user.IsActive, Is.True);
+    }
+
     [TestCase(null)]
     [TestCase("")]
     [TestCase("   ")]
@@ -68,5 +76,21 @@ public class UserTests
         user.SetSystemRole(newRole);
 
         Assert.That(user.SystemRole, Is.EqualTo(newRole));
+    }
+
+    [TestCase(true, false)]
+    [TestCase(false, true)]
+    [TestCase(true, true)]
+    public void SetActiveStatus_Should_SetToWhicheverStatusIsGiven(bool initialStatus, bool newStatus)
+    {
+        // ADR-0017: covers the no-op case (newStatus equals initialStatus)
+        // as well as an actual flip, since SetUserActiveStatusCommand
+        // documents a same-status call as a valid no-op success.
+        var user = new User("Scott Vercuski", "scott@example.com", SystemRole.Contributor);
+        user.SetActiveStatus(initialStatus);
+
+        user.SetActiveStatus(newStatus);
+
+        Assert.That(user.IsActive, Is.EqualTo(newStatus));
     }
 }

@@ -1,5 +1,6 @@
 using ArchitectureToolkit.Application.Abstractions;
 using ArchitectureToolkit.Application.Abstractions.Context;
+using ArchitectureToolkit.Application.Actions.Users;
 using ArchitectureToolkit.Domain.Entities;
 using ArchitectureToolkit.Domain.ValueObjects;
 
@@ -47,13 +48,21 @@ public sealed class PromoteUserCommandHandler(
             // one able to ever promote anyone again, since bootstrap
             // (ADR-0009/0014) only triggers on an empty USER table, not a
             // zero-architect one.
-            var architectsQuery = queryDbContext.Set<User>().Where(u => u.SystemRole == SystemRole.Architect);
-            var architects = await queryDbContext.ToListAsync(architectsQuery, cancellationToken);
+            //
+            // ADR-0017: counts only *active* architects, via the guard
+            // shared with SetUserActiveStatusCommandHandler. An architect
+            // who is already deactivated doesn't count toward "someone can
+            // still administer this install" in the first place, so
+            // demoting them is never blocked here regardless of how many
+            // other (possibly also inactive) architects exist.
+            var wouldRemoveLastActiveArchitect =
+                await ActiveArchitectGuard.WouldRemoveLastActiveArchitectAsync(
+                    queryDbContext, target, cancellationToken);
 
-            if (architects.Count <= 1)
+            if (wouldRemoveLastActiveArchitect)
             {
                 return Result<SystemRole>.Failure(
-                    "Cannot demote the last remaining architect — promote another user first.",
+                    "Cannot demote the last remaining active architect — promote another active user first.",
                     ResultErrorType.Conflict);
             }
         }

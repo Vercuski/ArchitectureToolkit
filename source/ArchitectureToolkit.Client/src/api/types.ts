@@ -17,12 +17,37 @@ export interface ProjectMemberDto {
   role: ProjectRole
 }
 
+// Mirrors ArchitectureToolkit.Domain.ValueObjects.SystemRole, serialized
+// as a string (JsonStringEnumConverter, see Program.cs).
+export type SystemRole = 'Contributor' | 'Architect'
+
 // Mirrors ArchitectureToolkit.Application.Contracts.Users.UserDto
 export interface UserDto {
   id: string
   name: string
   email: string
   systemRole: string
+}
+
+// Mirrors ArchitectureToolkit.Application.Contracts.Users.UserManagementDto —
+// the User Management tab's row shape (ADR-0017), narrower than UserDto.
+export interface UserManagementDto {
+  id: string
+  email: string
+  isActive: boolean
+}
+
+// Mirrors ArchitectureToolkit.Application.Contracts.Users.CreateUserResult
+// (ADR-0018) — the created row plus how the invite went.
+export interface CreateUserResult {
+  user: UserManagementDto
+  emailSent: boolean
+  inviteLink: string | null
+}
+
+// Mirrors AuthController.GetConfig's anonymous response shape (ADR-0018).
+export interface AuthConfigDto {
+  useSelfHostedProvider: boolean
 }
 
 // Mirrors ArchitectureToolkit.Application.Contracts.Categories.CategoryDto

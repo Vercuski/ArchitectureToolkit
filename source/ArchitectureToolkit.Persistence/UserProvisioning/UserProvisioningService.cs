@@ -121,6 +121,39 @@ public sealed class UserProvisioningService(
 
             var anyUserQuery = queryDbContext.Set<User>();
             var isFirstUser = (await queryDbContext.ToListAsync(anyUserQuery, cancellationToken)).Count == 0;
+
+            // ADR-0018: before creating a brand-new User, check for a
+            // still-pending admin-invited row — a USER created by
+            // CreateUserCommand with this exact email, never yet claimed
+            // by any login. Deliberately narrow: only adopts a row with
+            // ZERO existing USER_IDENTITY links. A USER row that already
+            // has one or more linked identities is never touched here,
+            // even if some other login coincidentally presents the same
+            // email — this is not an attempt to merge or verify
+            // ownership across identities, only to correctly claim a row
+            // this project's own invite flow created and is still
+            // waiting on.
+            var pendingInviteQuery = queryDbContext.Set<User>().Where(u => u.Email == email);
+            var pendingInvite = await queryDbContext.SingleOrDefaultAsync(pendingInviteQuery, cancellationToken);
+
+            if (pendingInvite is not null)
+            {
+                var alreadyLinkedQuery = queryDbContext.Set<UserIdentity>()
+                    .Where(i => i.UserId == pendingInvite.Id);
+                var alreadyLinked = await queryDbContext.ToListAsync(alreadyLinkedQuery, cancellationToken);
+
+                if (alreadyLinked.Count == 0)
+                {
+                    var adoptedIdentity = new UserIdentity(pendingInvite.Id, issuer, externalSubjectId, providerLabel);
+                    commandDbContext.Insert(adoptedIdentity);
+
+                    await unitOfWork.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+
+                    return Result<User>.Success(pendingInvite);
+                }
+            }
+
             var systemRole = isFirstUser ? SystemRole.Architect : SystemRole.Contributor;
 
             var newUser = new User(name, email, systemRole);

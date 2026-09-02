@@ -7,7 +7,7 @@ using ArchitectureToolkit.Domain.ValueObjects;
 namespace ArchitectureToolkit.Tests.ApplicationTests.Actions.Users.Commands;
 
 [TestFixture]
-public class PromoteUserCommandHandlerTests
+public class SetUserActiveStatusCommandHandlerTests
 {
     private IQueryDbContext _queryDbContext = null!;
     private ICommandDbContext _commandDbContext = null!;
@@ -21,15 +21,7 @@ public class PromoteUserCommandHandlerTests
         _unitOfWork = A.Fake<IUnitOfWork>();
     }
 
-    /// <summary>
-    /// Backs Set&lt;User&gt;() with an in-memory list, and makes
-    /// SingleOrDefaultAsync/ToListAsync actually evaluate whatever
-    /// IQueryable{User} they're given (via plain LINQ-to-Objects, since the
-    /// backing queryable is an in-memory array, not a real EF Core
-    /// provider) — rather than stubbing each call's return value
-    /// individually, which would break the moment the handler's query
-    /// shape changes.
-    /// </summary>
+    /// <summary>Same in-memory backing approach as PromoteUserCommandHandlerTests.</summary>
     private void SeedUsers(params User[] users)
     {
         A.CallTo(() => _queryDbContext.Set<User>()).Returns(users.AsQueryable());
@@ -39,7 +31,7 @@ public class PromoteUserCommandHandlerTests
             .ReturnsLazily((IQueryable<User> query, CancellationToken _) => Task.FromResult(query.ToList()));
     }
 
-    private PromoteUserCommandHandler CreateHandler()
+    private SetUserActiveStatusCommandHandler CreateHandler()
     {
         return new(_commandDbContext, _queryDbContext, _unitOfWork);
     }
@@ -51,7 +43,7 @@ public class PromoteUserCommandHandlerTests
         SeedUsers(target);
 
         var result = await CreateHandler().Handle(
-            new PromoteUserCommand(Guid.NewGuid(), target.Id, SystemRole.Architect), CancellationToken.None);
+            new SetUserActiveStatusCommand(Guid.NewGuid(), target.Id, false), CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -68,7 +60,7 @@ public class PromoteUserCommandHandlerTests
         SeedUsers(caller, target);
 
         var result = await CreateHandler().Handle(
-            new PromoteUserCommand(caller.Id, target.Id, SystemRole.Architect), CancellationToken.None);
+            new SetUserActiveStatusCommand(caller.Id, target.Id, false), CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -85,7 +77,7 @@ public class PromoteUserCommandHandlerTests
         SeedUsers(caller);
 
         var result = await CreateHandler().Handle(
-            new PromoteUserCommand(caller.Id, Guid.NewGuid(), SystemRole.Architect), CancellationToken.None);
+            new SetUserActiveStatusCommand(caller.Id, Guid.NewGuid(), false), CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -95,122 +87,132 @@ public class PromoteUserCommandHandlerTests
     }
 
     [Test]
-    public async Task Handle_Should_PromoteTarget_And_Save_When_CallerIsArchitect()
+    public async Task Handle_Should_DeactivateTarget_And_Save_When_AnotherActiveArchitectRemains()
     {
-        var caller = new User("Architect", "architect@example.com", SystemRole.Architect);
-        var target = new User("Target", "target@example.com", SystemRole.Contributor);
+        var caller = new User("Architect One", "one@example.com", SystemRole.Architect);
+        var target = new User("Contributor", "target@example.com", SystemRole.Contributor);
         SeedUsers(caller, target);
 
         var result = await CreateHandler().Handle(
-            new PromoteUserCommand(caller.Id, target.Id, SystemRole.Architect), CancellationToken.None);
+            new SetUserActiveStatusCommand(caller.Id, target.Id, false), CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.IsSuccess, Is.True);
-            Assert.That(result.Value, Is.EqualTo(SystemRole.Architect));
-            Assert.That(target.SystemRole, Is.EqualTo(SystemRole.Architect));
+            Assert.That(result.Value!.IsActive, Is.False);
+            Assert.That(target.IsActive, Is.False);
         }
         A.CallTo(() => _commandDbContext.Alter(target)).MustHaveHappenedOnceExactly();
         A.CallTo(() => _unitOfWork.SaveChangesAsync(A<CancellationToken>._)).MustHaveHappenedOnceExactly();
     }
 
     [Test]
-    public async Task Handle_Should_DemoteTarget_When_AnotherArchitectRemains()
+    public async Task Handle_Should_ReactivateTarget_When_CurrentlyInactive()
     {
-        var caller = new User("Architect One", "one@example.com", SystemRole.Architect);
-        var target = new User("Architect Two", "two@example.com", SystemRole.Architect);
+        var caller = new User("Architect", "architect@example.com", SystemRole.Architect);
+        var target = new User("Contributor", "target@example.com", SystemRole.Contributor);
+        target.SetActiveStatus(false);
         SeedUsers(caller, target);
 
         var result = await CreateHandler().Handle(
-            new PromoteUserCommand(caller.Id, target.Id, SystemRole.Contributor), CancellationToken.None);
+            new SetUserActiveStatusCommand(caller.Id, target.Id, true), CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.IsSuccess, Is.True);
-            Assert.That(target.SystemRole, Is.EqualTo(SystemRole.Contributor));
+            Assert.That(target.IsActive, Is.True);
         }
         A.CallTo(() => _commandDbContext.Alter(target)).MustHaveHappenedOnceExactly();
     }
 
     [Test]
-    public async Task Handle_Should_ReturnConflict_When_DemotingTheLastRemainingArchitect()
+    public async Task Handle_Should_AllowSelfDeactivation_When_AnotherActiveArchitectRemains()
     {
-        var caller = new User("Sole Architect", "architect@example.com", SystemRole.Architect);
+        var caller = new User("Architect One", "one@example.com", SystemRole.Architect);
+        var otherArchitect = new User("Architect Two", "two@example.com", SystemRole.Architect);
+        SeedUsers(caller, otherArchitect);
+
+        var result = await CreateHandler().Handle(
+            new SetUserActiveStatusCommand(caller.Id, caller.Id, false), CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(caller.IsActive, Is.False);
+        }
+    }
+
+    [Test]
+    public async Task Handle_Should_ReturnConflict_When_DeactivatingTheLastRemainingActiveArchitect()
+    {
+        var caller = new User("Sole Active Architect", "architect@example.com", SystemRole.Architect);
         SeedUsers(caller);
 
         var result = await CreateHandler().Handle(
-            new PromoteUserCommand(caller.Id, caller.Id, SystemRole.Contributor), CancellationToken.None);
+            new SetUserActiveStatusCommand(caller.Id, caller.Id, false), CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.IsSuccess, Is.False);
             Assert.That(result.ErrorType, Is.EqualTo(ResultErrorType.Conflict));
-            Assert.That(caller.SystemRole, Is.EqualTo(SystemRole.Architect));
+            Assert.That(caller.IsActive, Is.True);
         }
         A.CallTo(() => _commandDbContext.Alter(A<User>._)).MustNotHaveHappened();
         A.CallTo(() => _unitOfWork.SaveChangesAsync(A<CancellationToken>._)).MustNotHaveHappened();
     }
 
     [Test]
-    public async Task Handle_Should_DemoteInactiveArchitect_EvenWhenNoOtherActiveArchitectsExist()
+    public async Task Handle_Should_ReturnConflict_When_DeactivatingLastActiveArchitect_EvenIfInactiveArchitectsExist()
     {
-        // Target is an Architect but already inactive — demoting them
-        // doesn't change the active-architect count at all (ADR-0017), so
-        // it must be allowed even though the caller is the only active
-        // architect in the system.
-        var caller = new User("Sole Active Architect", "active@example.com", SystemRole.Architect);
-        var target = new User("Inactive Architect", "inactive@example.com", SystemRole.Architect);
-        target.SetActiveStatus(false);
-        SeedUsers(caller, target);
-
-        var result = await CreateHandler().Handle(
-            new PromoteUserCommand(caller.Id, target.Id, SystemRole.Contributor), CancellationToken.None);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(result.IsSuccess, Is.True);
-            Assert.That(target.SystemRole, Is.EqualTo(SystemRole.Contributor));
-        }
-        A.CallTo(() => _commandDbContext.Alter(target)).MustHaveHappenedOnceExactly();
-    }
-
-    [Test]
-    public async Task Handle_Should_ReturnConflict_When_DemotingLastActiveArchitect_EvenIfInactiveArchitectsExist()
-    {
-        // An inactive Architect elsewhere in the system must not count
-        // toward "another architect remains" (ADR-0017) — demoting the
-        // sole *active* architect must still be refused.
+        // An already-inactive Architect elsewhere must not count toward
+        // "another active architect remains" (ADR-0017) — same invariant
+        // PromoteUserCommandHandlerTests verifies from the demotion side.
         var caller = new User("Sole Active Architect", "active@example.com", SystemRole.Architect);
         var inactiveArchitect = new User("Inactive Architect", "inactive@example.com", SystemRole.Architect);
         inactiveArchitect.SetActiveStatus(false);
         SeedUsers(caller, inactiveArchitect);
 
         var result = await CreateHandler().Handle(
-            new PromoteUserCommand(caller.Id, caller.Id, SystemRole.Contributor), CancellationToken.None);
+            new SetUserActiveStatusCommand(caller.Id, caller.Id, false), CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.IsSuccess, Is.False);
             Assert.That(result.ErrorType, Is.EqualTo(ResultErrorType.Conflict));
-            Assert.That(caller.SystemRole, Is.EqualTo(SystemRole.Architect));
         }
-        A.CallTo(() => _commandDbContext.Alter(A<User>._)).MustNotHaveHappened();
     }
 
     [Test]
-    public async Task Handle_Should_Succeed_When_NewRoleEqualsCurrentRole()
+    public async Task Handle_Should_AllowDeactivatingAnAlreadyInactiveArchitect_RegardlessOfActiveArchitectCount()
+    {
+        // Target is already inactive, so deactivating them again is a
+        // no-op that never touches the active-architect count — must
+        // succeed even though the caller is the only active architect.
+        var caller = new User("Sole Active Architect", "active@example.com", SystemRole.Architect);
+        var target = new User("Already Inactive Architect", "inactive@example.com", SystemRole.Architect);
+        target.SetActiveStatus(false);
+        SeedUsers(caller, target);
+
+        var result = await CreateHandler().Handle(
+            new SetUserActiveStatusCommand(caller.Id, target.Id, false), CancellationToken.None);
+
+        Assert.That(result.IsSuccess, Is.True);
+    }
+
+    [Test]
+    public async Task Handle_Should_Succeed_When_NewStatusEqualsCurrentStatus()
     {
         var caller = new User("Architect", "architect@example.com", SystemRole.Architect);
         var target = new User("Target", "target@example.com", SystemRole.Contributor);
         SeedUsers(caller, target);
 
         var result = await CreateHandler().Handle(
-            new PromoteUserCommand(caller.Id, target.Id, SystemRole.Contributor), CancellationToken.None);
+            new SetUserActiveStatusCommand(caller.Id, target.Id, true), CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.IsSuccess, Is.True);
-            Assert.That(result.Value, Is.EqualTo(SystemRole.Contributor));
+            Assert.That(result.Value!.IsActive, Is.True);
         }
     }
 }

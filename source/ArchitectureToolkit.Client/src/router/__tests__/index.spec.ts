@@ -23,6 +23,8 @@ vi.mock('../../views/ProjectDetailView.vue', () => ({ default: stubComponent }))
 vi.mock('../../views/TemplateListView.vue', () => ({ default: stubComponent }))
 vi.mock('../../views/TemplateDetailView.vue', () => ({ default: stubComponent }))
 vi.mock('../../views/DocumentDetailView.vue', () => ({ default: stubComponent }))
+vi.mock('../../views/UserManagementView.vue', () => ({ default: stubComponent }))
+vi.mock('../../views/SetPasswordView.vue', () => ({ default: stubComponent }))
 
 // Imported after the mock above, and in this order: the auth store first so
 // the spied instance below is the same one router/index.ts's guard resolves

@@ -25,16 +25,25 @@ public abstract class ApiControllerBase(IUserProvisioningService userProvisionin
 {
     /// <summary>
     /// Resolves the authenticated caller's domain USER.Id. Returns null
-    /// only in the defensive case where the validated principal is somehow
-    /// missing the issuer/subject claims IUserProvisioningService requires
-    /// — see that interface's doc comment; a genuinely validated token
-    /// should never hit this path, but [Authorize] alone doesn't guarantee
-    /// it, so callers must still check for null.
+    /// in two cases every caller already treats identically (Unauthorized):
+    /// the defensive case where the validated principal is somehow missing
+    /// the issuer/subject claims IUserProvisioningService requires — see
+    /// that interface's doc comment; a genuinely validated token should
+    /// never hit this path, but [Authorize] alone doesn't guarantee it —
+    /// and, per ADR-0017, the case where the resolved user exists but has
+    /// been deactivated. This is deliberately the single enforcement point
+    /// for IsActive: every controller already returns Unauthorized() on a
+    /// null result here, so deactivating a user denies their API access
+    /// everywhere without any controller-by-controller change. It does not
+    /// prevent completing the OpenIddict login flow itself or refreshing an
+    /// existing token — AuthorizationController is [AllowAnonymous] and
+    /// sits outside ApiControllerBase by design (ADR-0003) — only actual
+    /// use of that token against api/* endpoints.
     /// </summary>
     protected async Task<Guid?> ResolveCallerUserIdAsync(CancellationToken cancellationToken)
     {
         var result = await userProvisioningService.ResolveOrProvisionUserAsync(User, cancellationToken);
-        return result.IsSuccess ? result.Value!.Id : null;
+        return result.IsSuccess && result.Value!.IsActive ? result.Value.Id : null;
     }
 
     /// <summary>
