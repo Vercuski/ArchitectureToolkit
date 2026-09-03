@@ -10,21 +10,24 @@ import { useSetupStore } from './stores/setup'
 const app = createApp(App)
 
 app.use(createPinia())
-app.use(router)
-app.use(vuetify)
 
-// Must resolve BEFORE the router's first navigation guard runs, same
-// reasoning as authStore.initialize() below — otherwise even an already-
-// configured deployment would see isConfigured's optimistic default
-// racing the guard on first load.
+// Both resolved BEFORE the router is installed (below) — vue-router's own
+// install(app) calls push(routerHistory.location) synchronously as part
+// of app.use(router) itself, kicking off the first run of every
+// beforeEach guard immediately, independent of app.mount(). Awaiting
+// these first and installing the router only afterward is what actually
+// guarantees that first guard run sees real values instead of
+// isConfigured/isAuthenticated's pre-fetch defaults — installing the
+// router earlier and merely awaiting these before app.mount() left the
+// guard's very first (synchronous, pre-await) read of the store racing
+// each fetch, and the fetch could — and did — lose that race.
 const setupStore = useSetupStore()
 await setupStore.checkStatus()
 
-// Must resolve any existing session BEFORE the router's first navigation
-// guard runs, or even an already-authenticated user with a valid stored
-// token would see isAuthenticated === false on first load and get sent
-// through the login redirect unnecessarily.
 const authStore = useAuthStore()
 await authStore.initialize()
+
+app.use(router)
+app.use(vuetify)
 
 app.mount('#app')
