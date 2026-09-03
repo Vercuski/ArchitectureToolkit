@@ -128,3 +128,13 @@ export interface DocumentRevisionDto {
 export interface DocumentRevisionDetailDto extends DocumentRevisionDto {
   content: string
 }
+
+// Mirrors ArchitectureToolkit.Application.Contracts.Attachments.DocumentAttachmentDto
+export interface DocumentAttachmentDto {
+  id: string
+  projectId: string
+  fileName: string
+  contentType: string
+  sizeBytes: number
+  uploadedAt: string
+}

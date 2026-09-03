@@ -1,6 +1,7 @@
 using ArchitectureToolkit.Application.Abstractions;
 using ArchitectureToolkit.Application.Abstractions.Context;
 using ArchitectureToolkit.Domain.Abstractions;
+using ArchitectureToolkit.Persistence.AttachmentStorage;
 using ArchitectureToolkit.Persistence.Contexts;
 using ArchitectureToolkit.Persistence.Options;
 using ArchitectureToolkit.Persistence.Providers;
@@ -20,6 +21,7 @@ public static class DependencyInjection
         builder.AddOptionsRegistration();
         builder.AddDatabaseProviderRegistration();
         builder.AddTemplateLibraryRegistration();
+        builder.AddAttachmentStorageRegistration();
         builder.AddUserProvisioningRegistration();
         return builder;
     }
@@ -35,12 +37,19 @@ public static class DependencyInjection
         builder.Services.Configure<ConnectionStringOptions>(GetSection<ConnectionStringOptions>(builder.Configuration));
         builder.Services.Configure<DatabasePlatformOptions>(GetSection<DatabasePlatformOptions>(builder.Configuration));
         builder.Services.Configure<TemplateLibraryOptions>(GetSection<TemplateLibraryOptions>(builder.Configuration));
+        builder.Services.Configure<AttachmentStorageOptions>(GetSection<AttachmentStorageOptions>(builder.Configuration));
         return builder;
     }
 
     private static IHostApplicationBuilder AddTemplateLibraryRegistration(this IHostApplicationBuilder builder)
     {
         builder.Services.AddScoped<ITemplateLibrarySource, FileSystemTemplateLibrarySource>();
+        return builder;
+    }
+
+    private static IHostApplicationBuilder AddAttachmentStorageRegistration(this IHostApplicationBuilder builder)
+    {
+        builder.Services.AddScoped<IAttachmentStorage, FileSystemAttachmentStorage>();
         return builder;
     }
 

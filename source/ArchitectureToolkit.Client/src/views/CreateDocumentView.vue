@@ -7,6 +7,7 @@ import { documentsApi } from '@/api/documents'
 import { templatesApi } from '@/api/templates'
 import { categoriesApi } from '@/api/categories'
 import { ApiError } from '@/api/httpClient'
+import { useToastUiFileAttachments } from '@/composables/useToastUiFileAttachments'
 import type { CategoryDto, TemplateDetailDto, TemplateSummaryDto } from '@/api/types'
 
 const route = useRoute()
@@ -35,6 +36,7 @@ const createError = ref<string | null>(null)
 
 const editorContainer = ref<HTMLElement | null>(null)
 let editor: Editor | null = null
+let cleanupFileAttachments: (() => void) | null = null
 // Snapshot of the editor's content right after the last programmatic
 // setMarkdown call (initial mount, or a template selection) — compared
 // against the live content at cancel-time to decide whether the user has
@@ -155,10 +157,16 @@ onMounted(async () => {
       previewStyle: 'vertical',
       initialValue: '',
     })
+    cleanupFileAttachments = useToastUiFileAttachments(
+      editor,
+      () => projectId,
+      (message) => (createError.value = message),
+    )
   }
 })
 
 onBeforeUnmount(() => {
+  cleanupFileAttachments?.()
   editor?.destroy()
   editor = null
 })

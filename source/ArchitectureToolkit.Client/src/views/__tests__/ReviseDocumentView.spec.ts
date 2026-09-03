@@ -35,6 +35,12 @@ class MockEditor {
   setMarkdown = setMarkdownMock
   getMarkdown = getMarkdownMock
   destroy = destroyMock
+  // useToastUiFileAttachments (the "attach file" toolbar button) calls
+  // these unconditionally at mount time / on upload — not this
+  // component's own behavior to verify, same reasoning as the rest of
+  // this mock, but they still need to exist so mounting doesn't throw.
+  insertToolbarItem = vi.fn()
+  insertText = vi.fn()
 }
 vi.mock('@toast-ui/editor', () => ({ default: MockEditor }))
 

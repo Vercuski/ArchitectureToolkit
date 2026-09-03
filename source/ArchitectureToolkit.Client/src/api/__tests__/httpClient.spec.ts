@@ -105,4 +105,36 @@ describe('httpClient', () => {
       body: undefined,
     })
   })
+
+  it('sends a FormData body without setting Content-Type, letting the browser set the multipart boundary', async () => {
+    getUserMock.mockResolvedValue(null)
+    vi.mocked(fetch).mockResolvedValue(jsonResponse({ id: '1' }))
+
+    const formData = new FormData()
+    formData.append('file', new Blob(['content']), 'test.txt')
+    await httpClient.postForm('/api/projects/1/attachments', formData)
+
+    const call = vi.mocked(fetch).mock.calls[0]
+    expect(call?.[1]?.body).toBe(formData)
+    expect(headersFromLastCall().has('Content-Type')).toBe(false)
+  })
+
+  it('getBlob attaches the bearer token and returns the response body as a Blob', async () => {
+    getUserMock.mockResolvedValue({ access_token: 'token-123' })
+    vi.mocked(fetch).mockResolvedValue(new Response('file bytes', { status: 200 }))
+
+    const blob = await httpClient.getBlob('/api/projects/1/attachments/2/download')
+
+    expect(headersFromLastCall().get('Authorization')).toBe('Bearer token-123')
+    expect(await blob.text()).toBe('file bytes')
+  })
+
+  it('getBlob throws an ApiError on a non-ok response', async () => {
+    getUserMock.mockResolvedValue(null)
+    vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 404 }))
+
+    await expect(httpClient.getBlob('/api/projects/1/attachments/2/download').catch((e) => e)).resolves.toMatchObject({
+      status: 404,
+    })
+  })
 })

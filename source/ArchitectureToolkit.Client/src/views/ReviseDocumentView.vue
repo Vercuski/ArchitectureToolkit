@@ -5,6 +5,7 @@ import Editor from '@toast-ui/editor'
 import '@toast-ui/editor/dist/toastui-editor.css'
 import { documentsApi } from '@/api/documents'
 import { ApiError } from '@/api/httpClient'
+import { useToastUiFileAttachments } from '@/composables/useToastUiFileAttachments'
 import type { BumpType, ProjectDocumentDetailDto } from '@/api/types'
 
 const route = useRoute()
@@ -25,6 +26,7 @@ const cancelConfirmOpen = ref(false)
 
 const editorContainer = ref<HTMLElement | null>(null)
 let editor: Editor | null = null
+let cleanupFileAttachments: (() => void) | null = null
 // Snapshot of the editor's content right after it's created from the
 // document's current content — compared against the live content at
 // cancel-time to decide whether there's actually something to confirm
@@ -106,10 +108,16 @@ onMounted(async () => {
       initialValue: document.value.content,
     })
     editorBaseline = document.value.content
+    cleanupFileAttachments = useToastUiFileAttachments(
+      editor,
+      () => document.value!.projectId,
+      (message) => (saveError.value = message),
+    )
   }
 })
 
 onBeforeUnmount(() => {
+  cleanupFileAttachments?.()
   editor?.destroy()
   editor = null
 })

@@ -42,6 +42,16 @@ builder.Services.AddSingleton<IAppConfigurationStore>(appConfigurationStore);
 // encrypted store) because it's a path, not a secret.
 builder.Configuration["Authentication:KeysDirectory"] = Path.Combine(storageDirectory, "openiddict-certs");
 
+// Where uploaded document attachments live (AttachmentStorageOptions) —
+// a path, not a secret, so — like TemplateLibrary:RootPath and
+// Setup:StorageDirectory itself — this is plain configuration rather than
+// part of the encrypted Setup Wizard blob. Falls back to a local dev
+// default here rather than in appsettings.json, same as
+// Setup:StorageDirectory's own fallback just above; docker-compose.yml
+// overrides it to a dedicated volume mount.
+builder.Configuration["Attachments:RootPath"] ??=
+    Path.Combine(builder.Environment.ContentRootPath, "App_Data", "attachments");
+
 // The single "is this deployment configured" signal (see SetupState's
 // doc comment for why this checks the fully-layered IConfiguration
 // rather than appConfigurationStore.IsConfigured directly): true once

@@ -64,6 +64,12 @@ services:
       # This is the only setting the container itself still needs: where
       # that volume is mounted. Not a secret, just a path.
       Setup__StorageDirectory: /app/config
+
+      # Where uploaded document attachments (the ToastUI "attach file"
+      # toolbar button) are stored — a path, not a secret, same reasoning
+      # as Setup__StorageDirectory itself, so it stays a plain env var
+      # rather than going through the setup wizard.
+      Attachments__RootPath: /app/attachments
     volumes:
       # Persists the setup wizard's encrypted configuration, its Data
       # Protection key ring, and the self-hosted OpenIddict
@@ -72,9 +78,15 @@ services:
       # separate "identity-keys" volume/AUTH_KEYS_PASSWORD secret into
       # this one, now auto-generated (see PersistedAppConfiguration.AuthKeysPassword).
       - app-config:/app/config
+      # Uploaded document attachments' actual bytes — separate from
+      # app-config above since this holds arbitrary, potentially large
+      # user content rather than small encrypted secrets, and the two
+      # have unrelated backup/retention concerns.
+      - document-attachments:/app/attachments
     ports:
       - "8080:8080"
 
 volumes:
   db-data:
   app-config:
+  document-attachments:
