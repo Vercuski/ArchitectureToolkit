@@ -8,7 +8,9 @@ import TemplateDetailView from '../views/TemplateDetailView.vue'
 import DocumentDetailView from '../views/DocumentDetailView.vue'
 import UserManagementView from '../views/UserManagementView.vue'
 import SetPasswordView from '../views/SetPasswordView.vue'
+import SetupWizardView from '../views/SetupWizardView.vue'
 import { useAuthStore } from '@/stores/auth'
+import { useSetupStore } from '@/stores/setup'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -121,10 +123,34 @@ const router = createRouter({
       name: 'set-password',
       component: SetPasswordView,
     },
+    {
+      // First-run setup (see the "Removing appsettings.json secrets"
+      // ADR). Not requiresAuth — reachable before any identity provider
+      // is even configured — and rendered without SideNav (App.vue) since
+      // there's no app to navigate yet. The guard below is what actually
+      // forces every other route here while unconfigured, and bounces
+      // away from here once it isn't needed anymore.
+      path: '/setup',
+      name: 'setup',
+      component: SetupWizardView,
+    },
   ],
 })
 
 router.beforeEach(async (to) => {
+  const setupStore = useSetupStore()
+
+  if (!setupStore.isConfigured && to.name !== 'setup') {
+    return { name: 'setup' }
+  }
+
+  if (setupStore.isConfigured && to.name === 'setup') {
+    // Setup already completed (e.g. a stale bookmark, or the wizard's
+    // own post-restart redirect already happened) — nothing left to do
+    // here.
+    return { name: 'home' }
+  }
+
   if (!to.meta.requiresAuth) {
     return true
   }

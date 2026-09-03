@@ -7,6 +7,20 @@
 #
 # For direct DB tool access (DBeaver, pgAdmin, etc.), opt in separately:
 #   docker compose -f docker-compose.yml -f docker-compose.expose-db.yml up
+#
+# First run: the api container comes up in Setup Mode (no ConnectionStrings/
+# Authentication/Smtp/TemplateLibrary env vars are passed to it at all
+# anymore — see the "Removing appsettings.json secrets" ADR). Open
+# http://localhost:8080 and complete the setup wizard, but change two of
+# its defaults first — they default to what a bare `dotnet run` needs,
+# not this Compose stack:
+#   - connection strings: Host=localhost -> Host=db (matching
+#     POSTGRES_DB/POSTGRES_USER/POSTGRES_PASSWORD from .env)
+#   - template library root path: ../DocumentationTemplates ->
+#     /app/DocumentationTemplates (where the Dockerfile bakes it in)
+# Saving triggers the api container to restart itself; `restart:
+# unless-stopped` below brings it back up already configured, migrated,
+# and seeded.
 
 services:
   db:
@@ -42,63 +56,25 @@ services:
       # only applies to `dotnet run`/VS debugging, never to this image.
       ASPNETCORE_HTTP_PORTS: "8080"
 
-      # ConnectionStringOptions binds to the "ConnectionStrings" section
-      # with two named properties (source/ArchitectureToolkit.Persistence
-      # /Options/ConnectionStringOptions.cs) — not a single "Default" key.
-      # Per ADR-0012, Command and Query both target the same physical
-      # database today, so both values are identical; they're declared
-      # separately because the code treats them as independently
-      # configurable (e.g. a future read replica needs no code change).
-      ConnectionStrings__QueryDbConnection: "Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
-      ConnectionStrings__CommandDbConnection: "Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
-
-      # DatabasePlatformOptions is also required — AddDatabaseProviderRegistration
-      # throws at startup without it. PostgreSQL is now the only value
-      # CreateDatabaseProvider accepts, since MySQL/MSSQL were removed.
-      DatabasePlatform__QueryDbPlatform: PostgreSQL
-      DatabasePlatform__CommandDbPlatform: PostgreSQL
-
-      # ADR-0014: absolute path to where the Dockerfile's final stage
-      # copies the bundled template library — see COPY --from=build
-      # /src/DocumentationTemplates in Dockerfile. Local dev uses a
-      # relative default instead (appsettings.json), since there's no
-      # fixed /app WORKDIR outside the container.
-      TemplateLibrary__RootPath: /app/DocumentationTemplates
-
-      # ADR-0003: self-hosted OpenIddict signing/encryption certificates.
-      # Left blank, Authentication__Authority defaults to the zero-config
-      # self-hosted provider; set it to swap in an external OIDC provider
-      # instead (no other change needed here).
-      # KeysPassword protects the persisted certificate files in the
-      # identity-keys volume below and is required in Production —
-      # PersistedCertificateProvisioner throws at startup without it.
-      Authentication__Authority: ""
-      Authentication__KeysDirectory: /app/keys
-      Authentication__KeysPassword: ${AUTH_KEYS_PASSWORD}
-
-      # ADR-0018: optional. Left blank (the default below), the User
-      # Management tab's "New User" action sends no email — it falls back
-      # to showing a copyable invite link instead, which is fine for a
-      # single-operator/small-team install. Set these to enable real SMTP
-      # delivery via any provider (Gmail app password, Office365,
-      # Postmark/SES SMTP relay, a local Mailpit/MailHog for testing).
-      Smtp__Host: ${SMTP_HOST:-}
-      Smtp__Port: ${SMTP_PORT:-587}
-      Smtp__Username: ${SMTP_USERNAME:-}
-      Smtp__Password: ${SMTP_PASSWORD:-}
-      Smtp__FromAddress: ${SMTP_FROM_ADDRESS:-no-reply@architecturetoolkit.local}
-      Smtp__FromName: ${SMTP_FROM_NAME:-ArchitectureToolkit}
-      Smtp__UseSslOnConnect: ${SMTP_USE_SSL_ON_CONNECT:-false}
+      # Everything this app used to need as ConnectionStrings__*/
+      # DatabasePlatform__*/TemplateLibrary__*/Authentication__*/Smtp__*
+      # environment variables is now entered once, through the setup
+      # wizard on first run, and persisted encrypted inside the
+      # app-config volume below — see ProtectedFileAppConfigurationStore.
+      # This is the only setting the container itself still needs: where
+      # that volume is mounted. Not a secret, just a path.
+      Setup__StorageDirectory: /app/config
     volumes:
-      # Persists the self-hosted OpenIddict signing/encryption certificates
-      # (PersistedCertificateProvisioner) across restarts/redeploys, so
-      # existing sessions and refresh tokens aren't silently invalidated.
-      # Same rationale as db-data above, just for a different kind of
-      # state that also must not be regenerated on every container start.
-      - identity-keys:/app/keys
+      # Persists the setup wizard's encrypted configuration, its Data
+      # Protection key ring, and the self-hosted OpenIddict
+      # signing/encryption certificates (PersistedCertificateProvisioner)
+      # across restarts/redeploys — consolidating what used to be a
+      # separate "identity-keys" volume/AUTH_KEYS_PASSWORD secret into
+      # this one, now auto-generated (see PersistedAppConfiguration.AuthKeysPassword).
+      - app-config:/app/config
     ports:
       - "8080:8080"
 
 volumes:
   db-data:
-  identity-keys:
+  app-config:

@@ -397,3 +397,9 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 /source/.sonarqube
+
+# ArchitectureToolkit first-run setup (Program.cs / ProtectedFileAppConfigurationStore):
+# local dev's encrypted configuration store and Data Protection key ring.
+# Never committed — this is where the setup wizard's connection strings,
+# SMTP credentials, and OpenIddict keys password land for `dotnet run`.
+App_Data/

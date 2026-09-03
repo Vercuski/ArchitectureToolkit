@@ -48,9 +48,25 @@ public static class DependencyInjection
 
     public static IHostApplicationBuilder AddInfrastructureRegistration(this IHostApplicationBuilder builder)
     {
+        builder.AddCoreInfrastructureRegistration();
+        builder.AddIdentityAuthenticationRegistration();
+        return builder;
+    }
+
+    /// <summary>
+    /// The subset of AddInfrastructureRegistration that needs no
+    /// configuration at all — split out for first-run Setup Mode
+    /// (Program.cs), which registers this alone: AddIdentityAuthenticationRegistration
+    /// requires a real ConnectionStrings:CommandDbConnection value (it
+    /// throws without one) and Setup Mode, by definition, doesn't have
+    /// one yet. Every other caller keeps using AddInfrastructureRegistration
+    /// exactly as before — this method is additive, not a behavior change
+    /// for the already-configured path.
+    /// </summary>
+    public static IHostApplicationBuilder AddCoreInfrastructureRegistration(this IHostApplicationBuilder builder)
+    {
         builder.AddHealthChecksRegistration();
         builder.AddLoggingRegistration();
-        builder.AddIdentityAuthenticationRegistration();
         builder.Services.AddSingleton<CorrelationIdAccessor>();
         builder.Services.AddProblemDetails();
         return builder;
