@@ -60,9 +60,12 @@ public class ListUsersQueryHandlerTests
         var result = await new ListUsersQueryHandler(_queryDbContext)
             .Handle(new ListUsersQuery(caller.Id), CancellationToken.None);
 
-        Assert.That(result.IsSuccess, Is.True);
-        Assert.That(result.Value!.Select(u => u.Email), Is.EqualTo(
-            new[] { "bea@example.com", "mia@example.com", "zed@example.com" }));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(result.Value!.Select(u => u.Email), Is.EqualTo(
+                ["bea@example.com", "mia@example.com", "zed@example.com"]));
+        }
     }
 
     [Test]
