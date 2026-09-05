@@ -114,4 +114,22 @@ public sealed class ProjectsController(IMediator mediator, IUserProvisioningServ
 
         return ToActionResult(result, _ => NoContent());
     }
+
+    /// <summary>
+    /// Streams a zip containing master.pdf (cover/TOC/contributors/links)
+    /// plus one PDF per current document revision under documents/.
+    /// </summary>
+    [HttpGet("{id:guid}/export")]
+    public async Task<IActionResult> ExportProject(Guid id, CancellationToken cancellationToken)
+    {
+        var callerUserId = await ResolveCallerUserIdAsync(cancellationToken);
+        if (callerUserId is null)
+        {
+            return Unauthorized();
+        }
+
+        var result = await mediator.Send(new ExportProjectQuery(callerUserId.Value, id), cancellationToken);
+
+        return ToActionResult(result, archive => File(archive.Content, "application/zip", archive.FileName));
+    }
 }

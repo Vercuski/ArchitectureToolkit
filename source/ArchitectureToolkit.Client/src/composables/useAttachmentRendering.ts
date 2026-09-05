@@ -21,7 +21,7 @@ function parseAttachmentUrl(url: string): ParsedAttachmentUrl | null {
   return { projectId: match[1]!, attachmentId: match[2]! }
 }
 
-function triggerBlobDownload(blob: Blob, fileName: string) {
+export function triggerBlobDownload(blob: Blob, fileName: string) {
   const objectUrl = URL.createObjectURL(blob)
   const anchor = document.createElement('a')
   anchor.href = objectUrl

@@ -24,4 +24,7 @@ export const projectsApi = {
 
   removeMember: (projectId: string, userId: string) =>
     httpClient.delete<void>(`/api/projects/${projectId}/members/${userId}`),
+
+  /** Zip containing master.pdf plus one PDF per document under documents/. */
+  exportBlob: (projectId: string) => httpClient.getBlob(`/api/projects/${projectId}/export`),
 }

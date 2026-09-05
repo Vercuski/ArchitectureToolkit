@@ -13,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Scalar.AspNetCore;
 using System.Text.Json.Serialization;
+using ArchitectureToolkit.Presentation.API.PdfExport;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -80,6 +81,7 @@ if (isConfigured)
     builder.AddPersistenceRegistrations();
     builder.AddInfrastructureRegistration();
     builder.AddIdentityAccountServices();
+	builder.AddPdfExportServices();
 }
 else
 {

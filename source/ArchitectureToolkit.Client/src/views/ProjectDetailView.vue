@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth'
 import { projectsApi } from '@/api/projects'
 import { documentsApi } from '@/api/documents'
 import { ApiError } from '@/api/httpClient'
+import { triggerBlobDownload } from '@/composables/useAttachmentRendering'
 import type { ProjectDocumentSummaryDto, ProjectDto, ProjectMemberDto, ProjectRole } from '@/api/types'
 
 const route = useRoute()
@@ -19,17 +20,9 @@ const loading = ref(true)
 const loadError = ref<string | null>(null)
 const activeTab = ref<'documents' | 'members'>('documents')
 
-// The backend has no concept of "my own user id" the SPA can read
-// directly from the token (that mapping only exists server-side via
-// IUserProvisioningService) — matching by email, which is already in
-// both the ID token and every ProjectMemberDto, is the pragmatic way to
-// find "me" in the member list. See GetCurrentUserQueryHandler's own doc
-// comment for the same reasoning from the other direction.
 const myEmail = computed(() => authStore.user?.profile.email)
 const myMembership = computed(() => members.value.find((m) => m.userEmail === myEmail.value))
 const isOwner = computed(() => myMembership.value?.role === 'Owner')
-// Mirrors CreateProjectDocumentCommandHandler/CreateDocumentRevisionCommandHandler's
-// own check: Viewer may read, Editor or Owner may create.
 const canEditDocuments = computed(
   () => myMembership.value?.role === 'Editor' || myMembership.value?.role === 'Owner',
 )
@@ -43,6 +36,9 @@ const addError = ref<string | null>(null)
 
 const rowBusy = ref<string | null>(null)
 const rowError = ref<string | null>(null)
+
+const exporting = ref(false)
+const exportError = ref<string | null>(null)
 
 async function load() {
   loading.value = true
@@ -65,6 +61,26 @@ async function load() {
 
 function apiErrorMessage(err: unknown, fallback: string): string {
   return err instanceof ApiError ? ((err.body as { error?: string })?.error ?? fallback) : fallback
+}
+
+function slugifyForFilename(value: string): string {
+  return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'project'
+}
+
+async function exportProject() {
+  if (!project.value) {
+    return
+  }
+  exporting.value = true
+  exportError.value = null
+  try {
+    const blob = await projectsApi.exportBlob(projectId)
+    triggerBlobDownload(blob, `${slugifyForFilename(project.value.name)}-export.zip`)
+  } catch (err) {
+    exportError.value = apiErrorMessage(err, 'Failed to export project.')
+  } finally {
+    exporting.value = false
+  }
 }
 
 async function addMember() {
@@ -122,7 +138,20 @@ onMounted(load)
     <v-alert v-if="loadError" type="error" :text="loadError" />
 
     <template v-if="!loading && !loadError && project">
-      <h1 class="text-h5 mb-4">Project: {{ project.name }}</h1>
+      <div class="d-flex align-center justify-space-between mb-4">
+        <h1 class="text-h5">Project: {{ project.name }}</h1>
+        <v-btn
+          id="export-project-button"
+          color="accent"
+          variant="tonal"
+          prepend-icon="mdi-file-export-outline"
+          :loading="exporting"
+          @click="exportProject"
+        >
+          Export as PDF
+        </v-btn>
+      </div>
+      <v-alert v-if="exportError" type="error" :text="exportError" class="mb-4" />
 
       <v-card>
         <v-tabs v-model="activeTab" color="primary">
@@ -231,6 +260,5 @@ onMounted(load)
         </v-window>
       </v-card>
     </template>
-
   </v-container>
 </template>
