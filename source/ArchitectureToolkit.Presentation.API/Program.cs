@@ -5,8 +5,10 @@ using ArchitectureToolkit.Infrastructure.Identity;
 using ArchitectureToolkit.Infrastructure.Setup;
 using ArchitectureToolkit.Persistence;
 using ArchitectureToolkit.Persistence.Contexts;
+using ArchitectureToolkit.Presentation.API.HealthChecks;
 using ArchitectureToolkit.Presentation.API.Identity;
 using ArchitectureToolkit.Presentation.API.Setup;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -82,6 +84,14 @@ if (isConfigured)
     builder.AddInfrastructureRegistration();
     builder.AddIdentityAccountServices();
 	builder.AddPdfExportServices();
+
+    // Real DB-connectivity check, added directly here rather than via
+    // Infrastructure's reflection-based health check discovery — see
+    // DatabaseHealthCheck's own doc comment for why it can't live in
+    // Infrastructure at all (it needs CommandDbContext, a Persistence
+    // type). Conditional on isConfigured for the same reason: this
+    // branch is the only place CommandDbContext is ever registered.
+    builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("Database");
 }
 else
 {
@@ -178,6 +188,36 @@ if (isConfigured && !app.Environment.IsEnvironment("Testing"))
     }
 }
 
+// ADR-0010/ADR-0020: this container never terminates TLS itself — the
+// bundled Caddy overlay and a self-hoster's own reverse proxy both
+// forward plain HTTP to Kestrel internally. Without this, Kestrel (and
+// everything downstream of it) sees every request as HTTP regardless of
+// what the browser actually connected over, which breaks two things at
+// once: OpenIddict's self-hosted server derives its discovery document's
+// issuer/endpoint URIs from Request.Scheme/Request.Host (it never calls
+// SetIssuer — see ADR-0018), so they'd read "http://..." while the SPA's
+// oidc-client-ts expects "https://..." (window.location.origin);
+// and OpenIddict's transport-security check (still active in Production,
+// see DependencyInjection.AddIdentityAuthenticationRegistration) would
+// reject every /connect/authorize and /connect/token call outright.
+// Registered first, before anything else reads Scheme/Host. KnownNetworks/
+// KnownProxies are cleared rather than populated: the proxy in front of
+// this container — bundled Caddy on Compose's own bridge network, or a
+// self-hoster's own reverse proxy — has no fixed address to enumerate
+// ahead of time. This does mean any request that reaches Kestrel directly
+// (e.g. the base compose file's default host port publish, with no proxy
+// in front at all) can set its own X-Forwarded-Proto and be believed;
+// that's an accepted trade-off of the hybrid-TLS model (ADR-0010), not a
+// gap introduced here — a deployment with no proxy in front was already
+// only ever plain HTTP with no transport confidentiality at all.
+var forwardedHeadersOptions = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+};
+forwardedHeadersOptions.KnownIPNetworks.Clear();
+forwardedHeadersOptions.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedHeadersOptions);
+
 if (!app.Environment.IsProduction())
 {
     app.MapOpenApi();
@@ -201,7 +241,21 @@ if (isConfigured)
 }
 
 app.AddInfrastructureApplicationRegistration();
-app.UseHttpsRedirection();
+
+// Only meaningful when Kestrel itself binds an HTTPS endpoint alongside
+// HTTP — e.g. Visual Studio's own "Container (Dockerfile)" F5 debug
+// profile (launchSettings.json sets ASPNETCORE_HTTPS_PORTS=8081 there,
+// with VS's own injected dev cert) or the plain "https" profile. In the
+// actual deployed Compose stack (ASPNETCORE_ENVIRONMENT=Production),
+// Kestrel never binds an HTTPS endpoint at all — TLS, if any, is always
+// terminated externally by Caddy or a BYO proxy (ADR-0010/ADR-0020) — so
+// this middleware could never resolve a redirect target there and would
+// otherwise log a "Failed to determine the https port for redirect"
+// warning on effectively every request, forever, for no benefit.
+if (!app.Environment.IsProduction())
+{
+    app.UseHttpsRedirection();
+}
 
 // ADR-0005: serves the Vue SPA from wwwroot (populated at publish time by
 // the Dockerfile's client-build stage — see that stage's own comment).

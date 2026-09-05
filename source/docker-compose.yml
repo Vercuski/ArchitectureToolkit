@@ -24,16 +24,16 @@
 
 services:
   db:
-    image: postgres:18-alpine
+    image: postgres:latest
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+       POSTGRES_DB: ${POSTGRES_DB:?error}
+       POSTGRES_USER: ${POSTGRES_USER:?error}
+       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?error}
     expose:
       - "5432"
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
@@ -54,7 +54,7 @@ services:
       # is always terminated externally (ADR-0010). This is independent
       # of launchSettings.json's "Container (Dockerfile)" profile, which
       # only applies to `dotnet run`/VS debugging, never to this image.
-      ASPNETCORE_HTTP_PORTS: "8080"
+      ASPNETCORE_HTTP_PORTS: 8080
 
       # Everything this app used to need as ConnectionStrings__*/
       # DatabasePlatform__*/TemplateLibrary__*/Authentication__*/Smtp__*
@@ -84,9 +84,30 @@ services:
       # have unrelated backup/retention concerns.
       - document-attachments:/app/attachments
     ports:
-      - "8080:8080"
+      - ${ASPNETCORE_HTTP_PORTS}:8080
+    healthcheck:
+      # /health reports a real signal — DatabaseHealthCheck actually
+      # probes PostgreSQL connectivity via CommandDbContext, replacing
+      # the placeholder that used to live here and returned a random
+      # status on every call. Healthy also covers Setup Mode: nothing
+      # registers DatabaseHealthCheck until isConfigured is true (see
+      # Program.cs), so an unconfigured-but-running instance reports
+      # Healthy with zero checks rather than failing one it can't run
+      # yet. start_period is generous because a fresh container runs EF
+      # Core migrations (ADR-0015) and template-library seeding
+      # (ADR-0014) before it can serve anything.
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
 
 volumes:
   db-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${ROOT_VOLUME_DIR:?error}/docker/volumes/Databases/PostgreSQL/Data
   app-config:
   document-attachments:

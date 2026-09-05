@@ -226,8 +226,19 @@ public static class DependencyInjection
                     .EnableEndSessionEndpointPassthrough();
 
                 // Dev-only: lets the server answer over plain HTTP for local
-                // testing without a TLS cert. Production always terminates
-                // TLS per ADR-0010/ADR-0011, so this must never apply there.
+                // testing without a TLS cert. Deliberately left ENABLED in
+                // Production rather than disabled outright (ADR-0020):
+                // Program.cs's UseForwardedHeaders trusts X-Forwarded-Proto
+                // from whatever reverse proxy sits in front — bundled Caddy
+                // or BYO, per ADR-0010 — so by the time this check runs,
+                // Request.IsHttps reflects what the proxy actually
+                // terminated, not what Kestrel itself received. A real
+                // TLS-terminating proxy passes this check; a self-hoster who
+                // skipped TLS entirely gets an explicit rejection here
+                // instead of OAuth silently working over plain HTTP —
+                // turning ADR-0010's own named risk ("misses the opt-in
+                // step and ends up without HTTPS") into a loud failure
+                // instead of a silent one.
                 if (!builder.Environment.IsProduction())
                 {
                     options.UseAspNetCore().DisableTransportSecurityRequirement();

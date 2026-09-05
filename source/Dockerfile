@@ -4,7 +4,10 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 USER app
 WORKDIR /app
 EXPOSE 8080
-EXPOSE 8081
+# No EXPOSE 8081: this image never configures a Kestrel HTTPS endpoint —
+# ASPNETCORE_HTTP_PORTS is HTTP-only in every Compose context, and TLS,
+# if any, is always terminated externally (ADR-0010). An 8081 EXPOSE here
+# would only imply an HTTPS listener that has never actually existed.
 
 # Builds the Vue 3 SPA independently of the .NET stages below — this
 # stage has no FROM dependency on `build`, so Docker can build it in
@@ -44,4 +47,30 @@ COPY --from=publish /app/publish .
 # part of the project's own output, so this folder — not referenced by any
 # .csproj — is copied explicitly from the build stage instead.
 COPY --from=build /src/DocumentationTemplates ./DocumentationTemplates
+
+# docker-compose.yml mounts named volumes at /app/config and
+# /app/attachments (Setup__StorageDirectory / Attachments__RootPath).
+# Neither path exists anywhere above, so on a genuinely fresh `docker
+# compose up` Docker creates them itself at first mount — as empty,
+# root-owned directories — and `base` already switched to the non-root
+# `app` user, so ProtectedFileAppConfigurationStore's very first
+# Directory.CreateDirectory call (and any attachment upload) would fail
+# with UnauthorizedAccessException before the Setup Wizard ever loads.
+# Pre-creating and chown'ing them here means Docker instead seeds each
+# fresh volume from *this* already-correctly-owned directory — the
+# documented behavior for a named volume mounted over a path that
+# already exists in the image.
+USER root
+RUN mkdir -p /app/config /app/attachments && chown -R app:app /app/config /app/attachments
+# curl: this base image doesn't include it, but docker-compose.yml's new
+# api healthcheck needs *something* to call GET /health from inside the
+# container, and nothing else present can. A conscious, small trade-off
+# (a few MB, no listening service, used only for this) rather than the
+# larger step of switching the runtime image or shipping a bespoke
+# healthcheck binary — see ADR-0019 for the same kind of footprint
+# reasoning applied to a much bigger dependency.
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+USER app
+
 ENTRYPOINT ["dotnet", "ArchitectureToolkit.Presentation.API.dll"]
