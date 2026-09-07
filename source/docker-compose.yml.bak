@@ -16,10 +16,7 @@
 # For direct DB tool access (DBeaver, pgAdmin, etc.), opt in separately:
 #   docker compose -f docker-compose.yml -f docker-compose.expose-db.yml up
 #
-# First run: set PUBLIC_ORIGIN in .env first (see .env.example — it must
-# match whatever URL you'll actually open this app at, or login fails
-# with OpenIddict's ID2043; see Authentication__RedirectUris__0 below).
-# Then the api container comes up in Setup Mode (no ConnectionStrings/
+# First run: the api container comes up in Setup Mode (no ConnectionStrings/
 # Authentication/Smtp/TemplateLibrary env vars are passed to it at all
 # anymore — see the "Removing appsettings.json secrets" ADR). Open
 # http://localhost:8080 and complete the setup wizard, but change two of
@@ -68,33 +65,13 @@ services:
       ASPNETCORE_HTTP_PORTS: "8080"
 
       # Everything this app used to need as ConnectionStrings__*/
-      # DatabasePlatform__*/TemplateLibrary__*/Smtp__* environment
-      # variables, plus Authentication__Authority/ClientId/Audience, is
-      # now entered once, through the setup wizard on first run, and
-      # persisted encrypted inside the app-config volume below — see
-      # ProtectedFileAppConfigurationStore. This is the only setting the
-      # container itself still needs for that: where that volume is
-      # mounted. Not a secret, just a path.
+      # DatabasePlatform__*/TemplateLibrary__*/Authentication__*/Smtp__*
+      # environment variables is now entered once, through the setup
+      # wizard on first run, and persisted encrypted inside the
+      # app-config volume below — see ProtectedFileAppConfigurationStore.
+      # This is the only setting the container itself still needs: where
+      # that volume is mounted. Not a secret, just a path.
       Setup__StorageDirectory: /app/config
-
-      # NOT covered by the setup wizard above, and never has been —
-      # CompleteSetupRequest/PersistedAppConfiguration have no field for
-      # either of these, so without this, IdentityBootstrapper's seeded
-      # OAuth client is stuck on AuthenticationConfiguration's hardcoded
-      # class default (the Vite dev server's own origin), which matches
-      # no real deployment and makes every login fail with OpenIddict's
-      # ID2043 ("redirect_uri is not valid for this client"). OpenIddict
-      # validates redirect_uri against an exact, pre-registered list by
-      # design — that's what stops a malicious site from ever receiving
-      # this app's tokens — so this has to be set explicitly to the exact
-      # origin your browser will actually use to reach this deployment.
-      # See .env.example's PUBLIC_ORIGIN for what to set per topology. If
-      # you access this deployment from more than one origin (e.g. both a
-      # LAN IP and "localhost" under docker-compose.with-local-tls.yml),
-      # add Authentication__RedirectUris__1, __2, etc. here for each one
-      # — OpenIddict has no "accept any origin" option, by design.
-      Authentication__RedirectUris__0: ${PUBLIC_ORIGIN}/auth/callback
-      Authentication__PostLogoutRedirectUris__0: ${PUBLIC_ORIGIN}/
 
       # Where uploaded document attachments (the ToastUI "attach file"
       # toolbar button) are stored — a path, not a secret, same reasoning

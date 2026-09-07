@@ -9,6 +9,16 @@
 # trying (and failing) to get one from a public CA that's never heard
 # of it.
 #
+# `on_demand` is required here, not optional: the :443 block below has
+# no fixed hostname in its site address (that's the whole point — it
+# needs to match whatever host the client actually used), and without
+# on_demand, Caddy has no hostname to issue a certificate for at config
+# load time, so it presents no certificate at all — a hard TLS handshake
+# failure (ERR_SSL_PROTOCOL_ERROR), not a trust warning. This does NOT
+# need a global on_demand_tls/ask policy the way public ACME issuers do:
+# that requirement exists to stop abuse of rate-limited external CAs,
+# and doesn't apply to the internal issuer used here.
+#
 # Browsers will show the usual self-signed-certificate warning until
 # Caddy's root CA is trusted once — that's expected, not a fault. To
 # trust it:
@@ -22,6 +32,8 @@
 }
 
 :443 {
-	tls internal
+	tls internal {
+		on_demand
+	}
 	reverse_proxy api:8080
 }
