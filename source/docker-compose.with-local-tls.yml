@@ -1,0 +1,39 @@
+# ArchitectureToolkit — optional local/LAN TLS overlay (ADR-0010, ADR-0022)
+#
+# Usage: docker compose -f docker-compose.yml -f docker-compose.with-local-tls.yml up
+#
+# For deployments with no public domain or DNS at all — a home server, a
+# LAN-only box, anything reached by IP address or a private hostname.
+# Caddy issues its own certificate from a local CA (its built-in `tls
+# internal`, see Caddyfile.local) instead of requesting one from Let's
+# Encrypt, so there's no DOMAIN to set and no internet reachability
+# requirement — unlike docker-compose.with-proxy.yml, which needs both.
+# The trade-off: browsers won't trust that certificate until Caddy's
+# root CA is imported once — see Caddyfile.local's own comment for how.
+# Until then you'll see the usual self-signed-certificate warning; that's
+# expected, not a fault.
+#
+# Mutually exclusive with docker-compose.with-proxy.yml — apply one
+# overlay or the other, not both; both define the same `caddy` service.
+
+services:
+  api:
+    ports: []
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile.local:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  caddy-data:
+  caddy-config:

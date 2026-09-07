@@ -2,8 +2,16 @@
 #
 # Default: two services, plain HTTP, db not reachable from the host.
 # Bring your own reverse proxy/tunnel for TLS (ADR-0010), or opt in to
-# the bundled Caddy proxy:
+# one of two bundled Caddy overlays:
 #   docker compose -f docker-compose.yml -f docker-compose.with-proxy.yml up
+#     — a real, publicly-trusted certificate from Let's Encrypt; needs a
+#       DOMAIN that already resolves to this host (ADR-0010).
+#   docker compose -f docker-compose.yml -f docker-compose.with-local-tls.yml up
+#     — a self-signed certificate from Caddy's own local CA; no domain,
+#       DNS, or internet reachability required (ADR-0022). Right for a
+#       home server or LAN-only deployment reached by IP or a private
+#       hostname. Browsers need Caddy's root CA imported once — see
+#       Caddyfile.local's own comment.
 #
 # For direct DB tool access (DBeaver, pgAdmin, etc.), opt in separately:
 #   docker compose -f docker-compose.yml -f docker-compose.expose-db.yml up
@@ -27,9 +35,9 @@ services:
     image: postgres:latest
     restart: unless-stopped
     environment:
-       POSTGRES_DB: ${POSTGRES_DB:?error}
-       POSTGRES_USER: ${POSTGRES_USER:?error}
-       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?error}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     expose:
       - "5432"
     volumes:
@@ -54,7 +62,7 @@ services:
       # is always terminated externally (ADR-0010). This is independent
       # of launchSettings.json's "Container (Dockerfile)" profile, which
       # only applies to `dotnet run`/VS debugging, never to this image.
-      ASPNETCORE_HTTP_PORTS: 8080
+      ASPNETCORE_HTTP_PORTS: "8080"
 
       # Everything this app used to need as ConnectionStrings__*/
       # DatabasePlatform__*/TemplateLibrary__*/Authentication__*/Smtp__*
@@ -84,7 +92,7 @@ services:
       # have unrelated backup/retention concerns.
       - document-attachments:/app/attachments
     ports:
-      - ${ASPNETCORE_HTTP_PORTS}:8080
+      - "8080:8080"
     healthcheck:
       # /health reports a real signal — DatabaseHealthCheck actually
       # probes PostgreSQL connectivity via CommandDbContext, replacing
@@ -104,10 +112,5 @@ services:
 
 volumes:
   db-data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${ROOT_VOLUME_DIR:?error}/docker/volumes/Databases/PostgreSQL/Data
   app-config:
   document-attachments:

@@ -1,0 +1,27 @@
+# Self-signed/local-CA TLS — see docker-compose.with-local-tls.yml's own
+# comment for when to reach for this instead of the plain Caddyfile
+# (which requests a real Let's Encrypt certificate and needs a public,
+# internet-reachable DOMAIN). This binds every interface on 80/443
+# rather than one specific hostname, so it works whichever way you
+# actually reach this box — by LAN IP, a private hostname, or
+# "localhost" — because `tls internal` issues a certificate from
+# Caddy's own CA for whatever host the client asked for, rather than
+# trying (and failing) to get one from a public CA that's never heard
+# of it.
+#
+# Browsers will show the usual self-signed-certificate warning until
+# Caddy's root CA is trusted once — that's expected, not a fault. To
+# trust it:
+#   docker compose exec caddy cat /data/caddy/pki/authorities/local/root.crt > architecturetoolkit-local-ca.crt
+# then import architecturetoolkit-local-ca.crt into your OS's or
+# browser's trusted root store. It's the same root every time this
+# stack starts — caddy-data is a persistent volume — so this is a
+# one-time step per client device, not a per-restart one.
+:80 {
+	redir https://{host}{uri} permanent
+}
+
+:443 {
+	tls internal
+	reverse_proxy api:8080
+}
