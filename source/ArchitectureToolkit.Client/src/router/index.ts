@@ -7,6 +7,7 @@ import TemplateListView from '../views/TemplateListView.vue'
 import TemplateDetailView from '../views/TemplateDetailView.vue'
 import DocumentDetailView from '../views/DocumentDetailView.vue'
 import UserManagementView from '../views/UserManagementView.vue'
+import SettingsView from '../views/SettingsView.vue'
 import SetPasswordView from '../views/SetPasswordView.vue'
 import SetupWizardView from '../views/SetupWizardView.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -102,6 +103,16 @@ const router = createRouter({
       path: '/admin/users',
       name: 'user-management',
       component: UserManagementView,
+      meta: { requiresAuth: true },
+    },
+    {
+      // Architect-only (ADR-0024), same gating approach as /admin/users
+      // just above: SettingsController returns 403 for a non-architect,
+      // which SettingsView surfaces as a plain load error rather than
+      // being gated here at the route level.
+      path: '/admin/settings',
+      name: 'settings',
+      component: SettingsView,
       meta: { requiresAuth: true },
     },
     {

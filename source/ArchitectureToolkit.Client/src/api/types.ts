@@ -138,3 +138,33 @@ export interface DocumentAttachmentDto {
   sizeBytes: number
   uploadedAt: string
 }
+
+// Mirrors ArchitectureToolkit.Presentation.API.Setup.SettingsDto (ADR-0024)
+// — GET /api/settings, architect-only. smtpPasswordConfigured stands in
+// for the actual password, which is never sent to the browser.
+export interface SettingsDto {
+  templateLibraryRootPath: string
+  smtpHost: string | null
+  smtpPort: number
+  smtpUsername: string | null
+  smtpPasswordConfigured: boolean
+  smtpFromAddress: string
+  smtpFromName: string
+  smtpUseSslOnConnect: boolean
+}
+
+// Mirrors ArchitectureToolkit.Presentation.API.Controllers.Requests.UpdateSettingsRequest
+// — PUT /api/settings. Property names deliberately match the backend's
+// own PascalCase names, same convention as CompleteSetupPayload.
+// smtpPassword: omit (undefined) to leave the current password
+// unchanged; any other value, including "", replaces it.
+export interface UpdateSettingsPayload {
+  TemplateLibraryRootPath: string
+  SmtpHost: string | null
+  SmtpPort: number
+  SmtpUsername: string | null
+  SmtpPassword?: string | null
+  SmtpFromAddress: string
+  SmtpFromName: string
+  SmtpUseSslOnConnect: boolean
+}

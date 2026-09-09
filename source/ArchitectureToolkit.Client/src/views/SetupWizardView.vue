@@ -3,6 +3,7 @@ import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { setupApi, type CompleteSetupPayload, type SetupFieldError } from '@/api/setup'
 import { useSetupStore } from '@/stores/setup'
+import { pollUntilBackUp } from '@/composables/useRestartPoll'
 import { ApiError } from '@/api/httpClient'
 
 const router = useRouter()
@@ -126,7 +127,13 @@ async function submit() {
     // so Docker's restart policy can bring it back up already
     // configured — see pollUntilBackUp.
     phase.value = 'restarting'
-    await pollUntilBackUp()
+    const cameBackUp = await pollUntilBackUp(async () => {
+      setupStore.markConfigured()
+      await router.replace({ name: 'home' })
+    })
+    if (!cameBackUp) {
+      phase.value = 'restart-failed'
+    }
   } catch (err) {
     if (err instanceof ApiError && err.status === 400) {
       const body = err.body as { errors?: SetupFieldError[] } | undefined
@@ -141,41 +148,6 @@ async function submit() {
     }
     phase.value = 'form'
   }
-}
-
-const POLL_INTERVAL_MS = 2000
-const POLL_INITIAL_DELAY_MS = 3000
-const MAX_POLL_ATTEMPTS = 60 // ~2 minutes total, generous for a cold container pull/start
-
-function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
-/**
- * The API process is restarting itself (SetupCompletionService), so this
- * request itself has nothing to wait on — polling /api/setup/status is
- * how the SPA finds out the new process is back up and fully configured.
- * A brief initial delay avoids a first attempt racing the shutdown
- * that's already in flight.
- */
-async function pollUntilBackUp() {
-  await delay(POLL_INITIAL_DELAY_MS)
-
-  for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
-    try {
-      const status = await setupApi.status()
-      if (status.isConfigured) {
-        setupStore.markConfigured()
-        await router.replace({ name: 'home' })
-        return
-      }
-    } catch {
-      // Expected mid-restart (connection refused/reset) — just keep polling.
-    }
-    await delay(POLL_INTERVAL_MS)
-  }
-
-  phase.value = 'restart-failed'
 }
 
 const isSubmitting = computed(() => phase.value === 'submitting')

@@ -84,6 +84,7 @@ if (isConfigured)
     builder.AddInfrastructureRegistration();
     builder.AddIdentityAccountServices();
 	builder.AddPdfExportServices();
+    builder.Services.AddScoped<SettingsService>();
 
     // Real DB-connectivity check, added directly here rather than via
     // Infrastructure's reflection-based health check discovery — see
@@ -192,14 +193,18 @@ if (isConfigured && !app.Environment.IsEnvironment("Testing"))
 // bundled Caddy overlay and a self-hoster's own reverse proxy both
 // forward plain HTTP to Kestrel internally. Without this, Kestrel (and
 // everything downstream of it) sees every request as HTTP regardless of
-// what the browser actually connected over, which breaks two things at
-// once: OpenIddict's self-hosted server derives its discovery document's
-// issuer/endpoint URIs from Request.Scheme/Request.Host (it never calls
-// SetIssuer — see ADR-0018), so they'd read "http://..." while the SPA's
-// oidc-client-ts expects "https://..." (window.location.origin);
-// and OpenIddict's transport-security check (still active in Production,
-// see DependencyInjection.AddIdentityAuthenticationRegistration) would
-// reject every /connect/authorize and /connect/token call outright.
+// what the browser actually connected over. That matters even though
+// OpenIddict's own transport-security check is unconditionally disabled
+// (see DependencyInjection.AddIdentityAuthenticationRegistration —
+// ADR-0020 revised that after real-world testing showed enforcing it in
+// Production broke this project's own documented no-proxy default
+// flow): OpenIddict's self-hosted server still derives its discovery
+// document's issuer/endpoint URIs from Request.Scheme/Request.Host (it
+// never calls SetIssuer — see ADR-0018), so behind a real TLS-
+// terminating proxy those would otherwise read "http://..." while the
+// SPA's oidc-client-ts expects "https://..." (window.location.origin) —
+// an issuer mismatch it rejects outright. This also gets the Identity
+// cookie's Secure flag right (CookieSecurePolicy.SameAsRequest).
 // Registered first, before anything else reads Scheme/Host. KnownNetworks/
 // KnownProxies are cleared rather than populated: the proxy in front of
 // this container — bundled Caddy on Compose's own bridge network, or a

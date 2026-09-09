@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { mount, flushPromises, type VueWrapper } from '@vue/test-utils'
+import { mount, flushPromises, DOMWrapper, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { defineComponent, h } from 'vue'
 import { VLayout } from 'vuetify/components'
@@ -85,5 +85,64 @@ describe('SideNav', () => {
     const wrapper = await mountSideNav()
 
     expect(wrapper.text()).toContain('User Management')
+  })
+
+  it('does not show Settings for a signed-in Contributor', async () => {
+    meMock.mockResolvedValue(contributor())
+    signIn()
+    const wrapper = await mountSideNav()
+
+    expect(wrapper.text()).not.toContain('Settings')
+  })
+
+  it('shows Settings for a signed-in Architect', async () => {
+    meMock.mockResolvedValue(architect())
+    signIn()
+    const wrapper = await mountSideNav()
+
+    expect(wrapper.text()).toContain('Settings')
+  })
+
+  describe('sign out', () => {
+    it('does not sign out immediately — shows a confirmation dialog first', async () => {
+      signIn()
+      const wrapper = await mountSideNav()
+      const authStore = useAuthStore()
+      const logoutSpy = vi.spyOn(authStore, 'logout').mockResolvedValue(undefined)
+
+      await wrapper.find('#sign-out-button').trigger('click')
+
+      expect(logoutSpy).not.toHaveBeenCalled()
+      expect(document.body.textContent).toContain('Sign out?')
+    })
+
+    it('signs out once the confirmation dialog is confirmed', async () => {
+      signIn()
+      const wrapper = await mountSideNav()
+      const authStore = useAuthStore()
+      const logoutSpy = vi.spyOn(authStore, 'logout').mockResolvedValue(undefined)
+
+      await wrapper.find('#sign-out-button').trigger('click')
+      await flushPromises()
+      await new DOMWrapper(document.body.querySelector('#confirm-sign-out')!).trigger('click')
+
+      expect(logoutSpy).toHaveBeenCalledOnce()
+    })
+
+    it('stays signed in when the confirmation dialog is cancelled', async () => {
+      signIn()
+      const wrapper = await mountSideNav()
+      const authStore = useAuthStore()
+      const logoutSpy = vi.spyOn(authStore, 'logout').mockResolvedValue(undefined)
+
+      await wrapper.find('#sign-out-button').trigger('click')
+      await flushPromises()
+      const cancelButton = [...document.body.querySelectorAll('button')].find((b) =>
+        b.textContent?.includes('Cancel'),
+      )
+      await new DOMWrapper(cancelButton!).trigger('click')
+
+      expect(logoutSpy).not.toHaveBeenCalled()
+    })
   })
 })

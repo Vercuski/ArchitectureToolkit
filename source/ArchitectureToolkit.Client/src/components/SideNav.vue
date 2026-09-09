@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useCurrentUserStore } from '@/stores/currentUser'
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
@@ -18,6 +18,18 @@ onMounted(() => {
     currentUser.ensureLoaded()
   }
 })
+
+// Same shape as the "Discard changes?" confirm dialogs already used on
+// the Revise*/CreateDocument views — sign-out is a single, one-way click
+// with no undo, sitting right next to Home/Projects/Templates in the same
+// nav list, so a confirmation step guards against a stray click costing
+// an unsaved edit elsewhere in the app.
+const signOutConfirmOpen = ref(false)
+
+function confirmSignOut() {
+  signOutConfirmOpen.value = false
+  authStore.logout()
+}
 </script>
 
 <template>
@@ -46,6 +58,13 @@ onMounted(() => {
         title="User Management"
       />
 
+      <v-list-item
+        v-if="authStore.isAuthenticated && currentUser.profile?.systemRole === 'Architect'"
+        to="/admin/settings"
+        prepend-icon="mdi-cog-outline"
+        title="Settings"
+      />
+
       <ThemeSwitcher />
 
       <v-list-item
@@ -53,7 +72,7 @@ onMounted(() => {
         id="sign-out-button"
         prepend-icon="mdi-logout-variant"
         title="Sign out"
-        @click="authStore.logout()"
+        @click="signOutConfirmOpen = true"
       />
       <v-list-item
         v-else
@@ -63,6 +82,17 @@ onMounted(() => {
         @click="authStore.login()"
       />
     </v-list>
+
+    <v-dialog v-model="signOutConfirmOpen" max-width="400">
+      <v-card title="Sign out?">
+        <v-card-text> Are you sure you want to sign out? </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="signOutConfirmOpen = false">Cancel</v-btn>
+          <v-btn id="confirm-sign-out" color="error" @click="confirmSignOut">Sign Out</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-navigation-drawer>
 </template>
 
